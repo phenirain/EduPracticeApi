@@ -10,10 +10,23 @@ type Employee struct {
 	Role       Role   `json:"role"`
 }
 
-func NewEmployee(id int32, surname, firstName, middleName, login, password string, role Role) Employee {
-	return Employee{Id: id, Surname: surname, FirstName: firstName, MiddleName: middleName, Login: login, Password: password, Role: role}
+func NewEmployee(id int32, surname, firstName, middleName, login, password string, role Role) (*Employee, error) {
+	return &Employee{
+		Id:         id,
+		Surname:    surname,
+		FirstName:  firstName,
+		MiddleName: middleName,
+		Login:      login,
+		Password:   password,
+		Role:       role}, nil
 }
 
-func CreateEmployee(surname, firstName, middleName, login, password string, role Role) Employee {
-	return Employee{Surname: surname, FirstName: firstName, MiddleName: middleName, Login: login, Password: password, Role: role}
+func CreateEmployee(surname, firstName, middleName, login, password string, role Role) (*Employee, error) {
+	return &Employee{
+		Surname:    surname,
+		FirstName:  firstName,
+		MiddleName: middleName,
+		Login:      login,
+		Password:   password,
+		Role:       role}, nil
 }

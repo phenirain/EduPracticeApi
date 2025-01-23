@@ -10,19 +10,19 @@ type Product struct {
 	Price       decimal.Decimal `json:"price"`
 }
 
-func NewProduct(id int32, nameProduct, article string, quantity int32, price decimal.Decimal) Product {
-	return Product{
+func NewProduct(id int32, nameProduct, article string, quantity int32, price decimal.Decimal) (*Product, error) {
+	return &Product{
 		Id:          id,
 		NameProduct: nameProduct,
 		Article:     article,
 		Quantity:    quantity,
-		Price:       price}
+		Price:       price}, nil
 }
 
-func CreateProduct(nameProduct, article string, quantity int32, price decimal.Decimal) Product {
-	return Product{
+func CreateProduct(nameProduct, article string, quantity int32, price decimal.Decimal) (*Product, error) {
+	return &Product{
 		NameProduct: nameProduct,
 		Article:     article,
 		Quantity:    quantity,
-		Price:       price}
+		Price:       price}, nil
 }

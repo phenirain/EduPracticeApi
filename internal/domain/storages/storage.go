@@ -10,21 +10,21 @@ type Storage struct {
 	QuantityReserved int32            `json:"quantity_reserved"`
 }
 
-func NewStorage(id int32, product products.Product, productLocation string, quantity int32, quantityReserved int32) Storage {
-	return Storage{
+func NewStorage(id int32, product products.Product, productLocation string, quantity int32, quantityReserved int32) (*Storage, error) {
+	return &Storage{
 		Id:               id,
 		Product:          product,
 		ProductLocation:  productLocation,
 		Quantity:         quantity,
 		QuantityReserved: quantityReserved,
-	}
+	}, nil
 }
 
-func CreateStorage(product products.Product, productLocation string, quantity int32, quantityReserved int32) Storage {
-	return Storage{
+func CreateStorage(product products.Product, productLocation string, quantity int32, quantityReserved int32) (*Storage, error) {
+	return &Storage{
 		Product:          product,
 		ProductLocation:  productLocation,
 		Quantity:         quantity,
 		QuantityReserved: quantityReserved,
-	}
+	}, nil
 }

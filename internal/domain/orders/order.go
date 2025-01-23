@@ -17,8 +17,8 @@ type Order struct {
 	TotalPrice decimal.Decimal  `json:"totalPrice"`
 }
 
-func NewOrder(id int32, product products.Product, client clients.Client, orderDate time.Time, status OrderStatus, quantity int32, totalPrice decimal.Decimal) Order {
-	return Order{
+func NewOrder(id int32, product products.Product, client clients.Client, orderDate time.Time, status OrderStatus, quantity int32, totalPrice decimal.Decimal) (*Order, error) {
+	return &Order{
 		Id:         id,
 		Product:    product,
 		Client:     client,
@@ -26,16 +26,16 @@ func NewOrder(id int32, product products.Product, client clients.Client, orderDa
 		Status:     status,
 		Quantity:   quantity,
 		TotalPrice: totalPrice,
-	}
+	}, nil
 }
 
-func CreateOrder(product products.Product, client clients.Client, orderDate time.Time, status OrderStatus, quantity int32, totalPrice decimal.Decimal) Order {
-	return Order{
+func CreateOrder(product products.Product, client clients.Client, orderDate time.Time, status OrderStatus, quantity int32, totalPrice decimal.Decimal) (*Order, error) {
+	return &Order{
 		Product:    product,
 		Client:     client,
 		Date:       orderDate,
 		Status:     status,
 		Quantity:   quantity,
 		TotalPrice: totalPrice,
-	}
+	}, nil
 }
