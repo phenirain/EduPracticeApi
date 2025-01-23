@@ -17,6 +17,10 @@ type Order struct {
 	TotalPrice decimal.Decimal  `json:"totalPrice"`
 }
 
+func (o *Order) SetId(id int32) {
+	o.Id = id
+}
+
 func NewOrder(id int32, product products.Product, client clients.Client, orderDate time.Time, status OrderStatus, quantity int32, totalPrice decimal.Decimal) (*Order, error) {
 	return &Order{
 		Id:         id,

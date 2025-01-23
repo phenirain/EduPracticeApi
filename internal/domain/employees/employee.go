@@ -1,32 +1,30 @@
 package employees
 
 type Employee struct {
-	Id         int32  `json:"id"`
-	Surname    string `json:"surname"`
-	FirstName  string `json:"firstName"`
-	MiddleName string `json:"middleName"`
-	Login      string `json:"login"`
-	Password   string `json:"password"`
-	Role       Role   `json:"role"`
+	Id       int32  `json:"id"`
+	FullName string `json:"full_name"`
+	Login    string `json:"login"`
+	Password string `json:"password"`
+	Role     Role   `json:"role"`
 }
 
-func NewEmployee(id int32, surname, firstName, middleName, login, password string, role Role) (*Employee, error) {
-	return &Employee{
-		Id:         id,
-		Surname:    surname,
-		FirstName:  firstName,
-		MiddleName: middleName,
-		Login:      login,
-		Password:   password,
-		Role:       role}, nil
+func (e *Employee) SetId(id int32) {
+	e.Id = id
 }
 
-func CreateEmployee(surname, firstName, middleName, login, password string, role Role) (*Employee, error) {
+func NewEmployee(id int32, fullName, login, password string, role Role) (*Employee, error) {
 	return &Employee{
-		Surname:    surname,
-		FirstName:  firstName,
-		MiddleName: middleName,
-		Login:      login,
-		Password:   password,
-		Role:       role}, nil
+		Id:       id,
+		FullName: fullName,
+		Login:    login,
+		Password: password,
+		Role:     role}, nil
+}
+
+func CreateEmployee(surname, fullName, login, password string, role Role) (*Employee, error) {
+	return &Employee{
+		FullName: fullName,
+		Login:    login,
+		Password: password,
+		Role:     role}, nil
 }

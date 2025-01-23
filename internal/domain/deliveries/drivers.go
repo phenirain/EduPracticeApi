@@ -1,28 +1,23 @@
 package deliveries
 
 type Driver struct {
-	Id          int32  `json:"id"`
-	Surname     string `json:"surname"`
-	MiddleName  string `json:"middleName"`
-	FirstName   string `json:"firstName"`
-	NumberPhone string `json:"numberPhone"`
+	Id       int32  `json:"id"`
+	FullName string `json:"full_name"`
 }
 
-func NewDriver(id int32, surname string, middleName string, firstName string, numberPhone string) (*Driver, error) {
+func (d *Driver) SetId(id int32) {
+	d.Id = id
+}
+
+func NewDriver(id int32, fullName string) (*Driver, error) {
 	return &Driver{
-		Id:          id,
-		Surname:     surname,
-		MiddleName:  middleName,
-		FirstName:   firstName,
-		NumberPhone: numberPhone,
+		Id:       id,
+		FullName: fullName,
 	}, nil
 }
 
-func CreateDriver(surname string, middleName string, firstName string, numberPhone string) (*Driver, error) {
+func CreateDriver(fullName string) (*Driver, error) {
 	return &Driver{
-		Surname:     surname,
-		MiddleName:  middleName,
-		FirstName:   firstName,
-		NumberPhone: numberPhone,
+		FullName: fullName,
 	}, nil
 }

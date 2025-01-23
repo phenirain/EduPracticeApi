@@ -1,8 +1,12 @@
 package employees
 
 type Role struct {
-	Id   int32
-	Name string
+	Id   int32  `json:"id"`
+	Name string `json:"name"`
+}
+
+func (r *Role) SetId(id int32) {
+	r.Id = id
 }
 
 func NewRole(id int32, name string) (*Role, error) {

@@ -1,81 +1,67 @@
-CREATE TABLE Roles
+CREATE TABLE IF NOT EXISTS roles
 (
-    ID       SERIAL PRIMARY KEY,
-    NameRole VARCHAR(40) NOT NULL
+    id       SERIAL PRIMARY KEY,
+    role_name VARCHAR(40) NOT NULL
 );
 
-CREATE TABLE Employees
+CREATE TABLE IF NOT EXISTS employees
 (
-    ID         SERIAL PRIMARY KEY,
-    Surname    VARCHAR(40) NOT NULL,
-    FirstName  VARCHAR(40) NOT NULL,
-    MiddleName VARCHAR(40) NOT NULL,
-    Login      VARCHAR(40) NOT NULL,
-    Password   VARCHAR(64) NOT NULL,
-    Role_ID    INT REFERENCES Roles (ID) NOT NULL
+    id         SERIAL PRIMARY KEY,
+    full_name    VARCHAR(100) NOT NULL,
+    login      VARCHAR(40) NOT NULL,
+    password   VARCHAR(64) NOT NULL,
+    role_id    INT REFERENCES roles (id) NOT NULL
 );
 
-CREATE TABLE Clients
+CREATE TABLE IF NOT EXISTS clients
 (
-    ID          SERIAL PRIMARY KEY,
-    CompanyName TEXT NOT NULL,
-    ContactPerson TEXT NOT NULL,
-    Email VARCHAR(50) NOT NULL,
-    NumberPhone VARCHAR(30) NOT NULL
+    id          SERIAL PRIMARY KEY,
+    company_name TEXT NOT NULL,
+    contact_person VARCHAR(100) NOT NULL,
+    email VARCHAR(50) NOT NULL,
+    telephone_number VARCHAR(30) NOT NULL
 );
 
-CREATE TABLE Products
+CREATE TABLE IF NOT EXISTS product_categories(
+    id SERIAL PRIMARY KEY,
+    category_name VARCHAR(50) NOT NULL
+)
+
+CREATE TABLE IF NOT EXISTS products
 (
-    ID          SERIAL PRIMARY KEY,
-    NameProduct VARCHAR(50)    NOT NULL,
-    Article     VARCHAR(40)    NOT NULL,
-    Quantity    INT            NOT NULL,
-    Price       DECIMAL(12, 2) NOT NULL
+    id          SERIAL PRIMARY KEY,
+    product_name VARCHAR(50)    NOT NULL,
+    article     VARCHAR(40)    NOT NULL,
+    category_id INT REFERENCES product_categories (id) NOT NULL,
+    quantity    INT            NOT NULL,
+    price       DECIMAL(12, 2) NOT NULL,
+    location VARCHAR(50),
+    reserved_quanity INT NOT NULL
 );
 
-CREATE TABLE Storages
+CREATE TABLE IF NOT EXISTS orders
 (
-    ID              SERIAL PRIMARY KEY,
-    Product_ID      INT REFERENCES Products (ID) NOT NULL,
-    ProductLocation TEXT NOT NULL,
-    QuantityStorage INT NOT NULL,
-    QuantityReserved INT NOT NULL
+    id         SERIAL PRIMARY KEY,
+    client_id  INT REFERENCES clients (id),
+    product_id INT REFERENCES products (id),
+    order_date  TIMESTAMP      NOT NULL,
+    status     VARCHAR(30),
+    quantity   INT            NOT NULL,
+    total_price DECIMAL(12, 2) NOT NULL
 );
 
-CREATE TABLE Orders
+CREATE TABLE IF NOT EXISTS drivers
 (
-    ID         SERIAL PRIMARY KEY,
-    Product_ID INT REFERENCES Products (ID),
-    Client_ID  INT REFERENCES Clients (ID),
-    OrderDate  TIMESTAMP      NOT NULL,
-    Status     VARCHAR(30),
-    Quantity   INT            NOT NULL,
-    TotalPrice DECIMAL(12, 2) NOT NULL
+    id          SERIAL PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE Payments
+CREATE TABLE IF NOT EXISTS deliveries
 (
-    ID       SERIAL PRIMARY KEY,
-    Status   VARCHAR(30),
-    Date     TIMESTAMP NOT NULL,
-    Order_ID INT REFERENCES Orders (ID)
-);
-
-CREATE TABLE Drivers
-(
-    ID          SERIAL PRIMARY KEY,
-    Surname     VARCHAR(40) NOT NULL,
-    MiddleName  VARCHAR(40) NOT NULL,
-    FirstName   VARCHAR(40) NOT NULL,
-    NumberPhone VARCHAR(30) NOT NULL
-);
-
-CREATE TABLE Deliveries
-(
-    ID        SERIAL PRIMARY KEY,
-    Order_ID  INT REFERENCES Orders (ID) NOT NULL,
-    Transport TEXT NOT NULL,
-    Route TEXT NOT NULL,
-    Status VARCHAR(30) NOT NULL,
-    Driver_ID INT REFERENCES Drivers(ID) NOT NULL
+    id        SERIAL PRIMARY KEY,
+    order_id  INT REFERENCES orders (ID) NOT NULL,
+    driver_id INT REFERENCES drivers (id) NOT NULL,
+    transport TEXT NOT NULL,
+    route TEXT NOT NULL,
+    status VARCHAR(30) NOT NULL,
 );

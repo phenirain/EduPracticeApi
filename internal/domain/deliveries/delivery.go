@@ -11,6 +11,10 @@ type Delivery struct {
 	Driver    Driver         `json:"driver"`
 }
 
+func (d *Delivery) SetId(id int32) {
+	d.Id = id
+}
+
 func NewDelivery(id int32, order orders.Order, transport string, route string, status DeliveryStatus, driver Driver) (*Delivery, error) {
 	return &Delivery{
 		Id:        id,
