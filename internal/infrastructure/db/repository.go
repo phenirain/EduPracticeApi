@@ -13,7 +13,7 @@ type Model interface {
 }
 
 type DbModel[T Model] interface {
-	FromModelToDB(model *T)
+	FromModelToDB(model T)
 	TableName() string
 	ID() int32
 }
@@ -26,7 +26,7 @@ func NewRepository[TDB DbModel[T], T Model](db *sqlx.DB) *Repository[TDB, T] {
 	return &Repository[TDB, T]{db: db}
 }
 
-func (r *Repository[TDB, T]) Create(ctx context.Context, model *T) (*T, error) {
+func (r *Repository[TDB, T]) Create(ctx context.Context, model T) (T, error) {
 	var dbModel TDB
 	dbModel.FromModelToDB(model)
 
@@ -50,13 +50,15 @@ func (r *Repository[TDB, T]) Create(ctx context.Context, model *T) (*T, error) {
 	var id int32
 	err := r.db.QueryRowxContext(ctx, query, args...).Scan(&id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to insert to %s: %v", dbModel.TableName(), err)
+		// must return model, because i cannot return nil due all interfaces must can operate with pointer
+		//instead copy of struct
+		return model, fmt.Errorf("failed to insert to %s: %v", dbModel.TableName(), err)
 	}
-	(*model).SetId(id)
+	model.SetId(id)
 	return model, nil
 }
 
-func (r *Repository[TDB, T]) Update(ctx context.Context, model *T) error {
+func (r *Repository[TDB, T]) Update(ctx context.Context, model T) error {
 	var dbModel TDB
 	dbModel.FromModelToDB(model)
 

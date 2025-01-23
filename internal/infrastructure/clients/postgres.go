@@ -2,98 +2,62 @@ package clients
 
 import (
 	"api/internal/domain/clients"
+	dbPack "api/internal/infrastructure/db"
 	"context"
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	"reflect"
-	"strings"
 )
 
 type clientDB struct {
-	Id            int32  `db:"id"`
-	CompanyName   string `db:"companyname"`
-	ContactPerson string `db:"contactperson"`
-	Email         string `db:"email"`
-	Number        string `db:"number"`
+	Id              int32  `db:"id"`
+	CompanyName     string `db:"company_name"`
+	ContactPerson   string `db:"contact_person"`
+	Email           string `db:"email"`
+	TelephoneNumber string `db:"telephone_number"`
 }
 
-func fromClientToDb(client *clients.Client) *clientDB {
-	return &clientDB{
-		CompanyName:   client.CompanyName,
-		ContactPerson: client.ContactPerson,
-		Email:         client.Email,
-		Number:        client.Number,
-	}
+func (c *clientDB) FromModelToDB(model *clients.Client) {
+	c.Id = model.Id
+	c.CompanyName = model.CompanyName
+	c.ContactPerson = model.ContactPerson
+	c.Email = model.Email
+	c.TelephoneNumber = model.TelephoneNumber
+}
+
+func (c *clientDB) TableName() string {
+	return "clients"
+}
+
+func (c *clientDB) ID() int32 {
+	return c.Id
 }
 
 type PostgresRepo struct {
+	*dbPack.Repository[*clientDB, *clients.Client]
 	db *sqlx.DB
 }
 
 func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
-	return &PostgresRepo{db: db}
+	baseRepo := dbPack.NewRepository[*clientDB, *clients.Client](db)
+	return &PostgresRepo{baseRepo, db}
 }
 
-func (r *PostgresRepo) Create(ctx context.Context, client *clients.Client) (*clients.Client, error) {
-	clientDb := fromClientToDb(client)
-	var id int32
-	query := "INSERT INTO clients (companyname, contactperson, email, number) VALUES ($1, $2, $3, $4) RETURNING id"
-	err := r.db.QueryRowxContext(ctx, query, clientDb).Scan(&id)
-	if err != nil {
-		return nil, fmt.Errorf("failed to insert user: %v", err)
-	}
-	client.Id = id
-	return client, nil
-}
-
-func (r *PostgresRepo) GetAll(ctx context.Context) ([]*clients.Client, error) {
+func (r *PostgresRepo) GetAll(ctx context.Context) ([]clients.Client, error) {
 	var clientsDB []clientDB
-	query := "SELECT id, companyname, contactperson, email, number FROM clients"
+	query := `SELECT id, company_name, contact_person, email, telephone_number FROM clients`
 	err := r.db.SelectContext(ctx, &clientsDB, query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get users: %v", err)
 	}
-
+	
 	result := make([]clients.Client, 0, len(clientsDB))
 	for _, clientDb := range clientsDB {
-		client, err := clients.NewClient(clientDb.Id, clientDb.CompanyName, clientDb.ContactPerson, clientDb.Email, clientDb.Number)
+		client, err := clients.NewClient(clientDb.Id, clientDb.CompanyName, clientDb.ContactPerson, clientDb.Email, clientDb.TelephoneNumber)
 		if err != nil {
 			return nil, fmt.Errorf("failed to init client entity: %w", err)
 		}
 		result = append(result, *client)
 	}
-
+	
 	return result, nil
-}
-
-func (r *PostgresRepo) Update(ctx context.Context, client *clients.Client) error {
-	clientDb := fromClientToDb(client)
-	val := reflect.ValueOf(clientDb)
-	typ := reflect.TypeOf(clientDb)
-	fields := make([]string, 0, typ.NumField()-1)
-	args := make([]interface{}, 0, typ.NumField()-1)
-
-	for i := 0; i < typ.NumField(); i++ {
-		field := typ.Field(i)
-		if field.Name != "Id" {
-			fields = append(fields, fmt.Sprintf("%s = %d", field.Name, len(args)+1))
-			args = append(args, val.Field(i))
-		}
-	}
-
-	query := fmt.Sprintf("UPDATE clients SET %s WHERE id = %d", strings.Join(fields, ", "), clientDb.Id)
-	_, err := r.db.ExecContext(ctx, query, args...)
-	if err != nil {
-		return fmt.Errorf("failed to update user with id = %d: %v", clientDb.Id, err)
-	}
-	return nil
-}
-
-func (r *PostgresRepo) Delete(ctx context.Context, id int32) error {
-	query := "DELETE FROM clients WHERE id = $1"
-	_, err := r.db.ExecContext(ctx, query, id)
-	if err != nil {
-		return fmt.Errorf("failed to delete user with id = %d: %v", id, err)
-	}
-	return nil
 }
