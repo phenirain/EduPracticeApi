@@ -2,10 +2,14 @@ package orders
 
 import (
 	"api/internal/domain/orders"
-	mainService "api/internal/service"
 	"context"
+	"errors"
 	"fmt"
 )
+
+func errNotFound(tableName string, id int32) error {
+	return errors.New(fmt.Sprintf("Object of %s with id: %d not found", tableName, id))
+}
 
 func (s *OrderService) ReserveOrder(ctx context.Context, request CreateOrderRequest) (*orders.Order, error) {
 	// Implement reservation logic here
@@ -40,14 +44,14 @@ func (s *OrderService) CompletedOrder(ctx context.Context, request UpdateOrderRe
 		return fmt.Errorf("failed to check order existence: %v", err)
 	}
 	if !exists {
-		return mainService.ErrNotFound("order", request.Id)
+		return errNotFound("order", request.Id)
 	}
 	exists, err = s.productRepo.ExistsById(ctx, request.ProductId)
 	if err != nil {
 		return fmt.Errorf("failed to check product existence: %v", err)
 	}
 	if !exists {
-		return mainService.ErrNotFound("product", request.ProductId)
+		return errNotFound("product", request.ProductId)
 	}
 	product, err := s.productRepo.GetById(ctx, request.ProductId)
 	if err != nil {
