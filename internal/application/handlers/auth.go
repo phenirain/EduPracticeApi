@@ -1,4 +1,4 @@
-package application
+package handlers
 
 import (
 	"api/internal/service/auth"
