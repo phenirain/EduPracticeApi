@@ -27,9 +27,11 @@ func (s *AuthService) TryLogin(ctx context.Context, request *AuthRequest) (*Unif
 					Status:  "Success",
 					Message: "Login successful",
 				},
-				Token:        jwt.MustGenerateToken(employee.Id, employee.Role.Name, s.config.Secret, s.config.tokenTTL),
-				RefreshToken: jwt.MustGenerateToken(employee.Id, employee.Role.Name, s.config.Secret, s.config.refreshTokenTTL),
-				Role:         employee.Role.Name,
+				Token: jwt.MustGenerateToken(employee.Id, employee.Role.Name, s.config.Secret,
+					s.config.TokenTTL),
+				RefreshToken: jwt.MustGenerateToken(employee.Id, employee.Role.Name, s.config.Secret,
+					s.config.RefreshTokenTTL),
+				Role: employee.Role.Name,
 			},
 		}, nil
 	} else {

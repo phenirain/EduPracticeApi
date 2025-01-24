@@ -34,8 +34,8 @@ type JwtResponse struct {
 
 type TokenConfig struct {
 	Secret          []byte
-	tokenTTL        time.Duration
-	refreshTokenTTL time.Duration
+	TokenTTL        time.Duration
+	RefreshTokenTTL time.Duration
 }
 
 type AuthService struct {
