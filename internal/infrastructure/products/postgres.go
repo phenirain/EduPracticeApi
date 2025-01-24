@@ -52,6 +52,27 @@ func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
 	}
 }
 
+func (r *PostgresRepo) GetById(ctx context.Context, id int32) (*products.Product, error) {
+	var productView ProductView
+	err := r.db.GetContext(ctx, &productView.View, productView.Query+"WHERE p.id = $1", id)
+	if err != nil {
+		return nil, err
+	}
+
+	productCategory, err := products.NewProductCategory(productView.View.Category.Id,
+		productView.View.Category.Name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create product category: %v", err)
+	}
+	product, err := products.NewProduct(productView.View.Id, productView.View.Name, productView.View.Article,
+		*productCategory, productView.View.Quantity, productView.View.Price, productView.View.Location,
+		productView.View.ReservedQuantity)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create product: %v", err)
+	}
+	return product, nil
+}
+
 func (r *PostgresRepo) GetAll(ctx context.Context) ([]products.Product, error) {
 	var allProducts []products.Product
 	productView := MustNewProductView()
