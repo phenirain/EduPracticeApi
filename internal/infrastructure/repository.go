@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"reflect"
@@ -56,6 +57,19 @@ func (r *Repository[TDB, T]) Create(ctx context.Context, model T) (T, error) {
 	}
 	model.SetId(id)
 	return model, nil
+}
+func (r *Repository[TDB, T]) ExistsById(ctx context.Context, id int32) (bool, error) {
+	var dbModel TDB
+	query := fmt.Sprintf(`SELECT 1 FROM %s WHERE id = $1`, dbModel.TableName())
+	var result int32
+	err := r.db.QueryRowxContext(ctx, query, id).Scan(&result)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to check existence: %v", err)
+	}
+	return true, nil
 }
 
 func (r *Repository[TDB, T]) Update(ctx context.Context, model T) error {
