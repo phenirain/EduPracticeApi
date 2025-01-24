@@ -52,8 +52,8 @@ func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
 	return &PostgresRepo{db: db}
 }
 
-func (r *PostgresRepo) GetAll(ctx context.Context) ([]domain.Delivery, error) {
-	var allDeliveries []domain.Delivery
+func (r *PostgresRepo) GetAll(ctx context.Context) ([]deliveries.Delivery, error) {
+	var allDeliveries []deliveries.Delivery
 	query := `
 SELECT del.id, del.transport, del.route, del.status o.id, o.order_date, o.status, o.quantity, o.total_price,
 p.id, p.product_name, p.article, p.quantity, p.price, p.location, p.reserved_quantity 

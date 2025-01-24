@@ -49,7 +49,7 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]clients.Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get users: %v", err)
 	}
-	
+
 	result := make([]clients.Client, 0, len(clientsDB))
 	for _, clientDb := range clientsDB {
 		client, err := clients.NewClient(clientDb.Id, clientDb.CompanyName, clientDb.ContactPerson, clientDb.Email, clientDb.TelephoneNumber)
@@ -58,6 +58,6 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]clients.Client, error) {
 		}
 		result = append(result, *client)
 	}
-	
+
 	return result, nil
 }
