@@ -3,6 +3,7 @@ package auth
 import (
 	"api/internal/domain/employees"
 	"context"
+	"time"
 )
 
 type AuthRepository interface {
@@ -31,10 +32,17 @@ type JwtResponse struct {
 	Role         string `json:"role"`
 }
 
-type AuthService struct {
-	repo AuthRepository
+type TokenConfig struct {
+	Secret          []byte
+	tokenTTL        time.Duration
+	refreshTokenTTL time.Duration
 }
 
-func NewAuthService(repo AuthRepository) *AuthService {
-	return &AuthService{repo}
+type AuthService struct {
+	repo   AuthRepository
+	config TokenConfig
+}
+
+func NewAuthService(repo AuthRepository, config TokenConfig) *AuthService {
+	return &AuthService{repo, config}
 }

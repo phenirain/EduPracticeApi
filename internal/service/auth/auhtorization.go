@@ -1,11 +1,12 @@
 package auth
 
 import (
+	"api/internal/lib/jwt"
 	"context"
 	"database/sql"
 )
 
-func (s *AuthService) TryToLogin(ctx context.Context, request *AuthRequest) (*UnifiedResponse, error) {
+func (s *AuthService) TryLogin(ctx context.Context, request *AuthRequest) (*UnifiedResponse, error) {
 	employee, err := s.repo.GetByLogin(ctx, request.Login)
 	if err == sql.ErrNoRows {
 		return &UnifiedResponse{
@@ -26,8 +27,8 @@ func (s *AuthService) TryToLogin(ctx context.Context, request *AuthRequest) (*Un
 					Status:  "Success",
 					Message: "Login successful",
 				},
-				Token:        generateToken(employee.Id, employee.Role.Name),
-				RefreshToken: generateRefreshToken(),
+				Token:        jwt.MustGenerateToken(employee.Id, employee.Role.Name, s.config.Secret, s.config.tokenTTL),
+				RefreshToken: jwt.MustGenerateToken(employee.Id, employee.Role.Name, s.config.Secret, s.config.refreshTokenTTL),
 				Role:         employee.Role.Name,
 			},
 		}, nil
@@ -39,19 +40,4 @@ func (s *AuthService) TryToLogin(ctx context.Context, request *AuthRequest) (*Un
 			},
 		}, nil
 	}
-}
-
-func VerifyToken(ctx context.Context, request *AuthRequest) (*UnifiedResponse, error) {
-	// Verify JWT token here
-	return nil, nil
-}
-
-func generateToken(userId int32, role string) string {
-	// Generate JWT token here
-	return "generated_jwt_token"
-}
-
-func generateRefreshToken() string {
-	// Generate refresh token here
-	return "generated_refresh_token"
 }
