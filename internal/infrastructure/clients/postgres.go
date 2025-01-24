@@ -8,7 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type clientDB struct {
+type ClientDB struct {
 	Id              int32  `db:"id"`
 	CompanyName     string `db:"company_name"`
 	ContactPerson   string `db:"contact_person"`
@@ -16,7 +16,7 @@ type clientDB struct {
 	TelephoneNumber string `db:"telephone_number"`
 }
 
-func (c *clientDB) FromModelToDB(model *clients.Client) {
+func (c *ClientDB) FromModelToDB(model *clients.Client) {
 	c.Id = model.Id
 	c.CompanyName = model.CompanyName
 	c.ContactPerson = model.ContactPerson
@@ -24,26 +24,26 @@ func (c *clientDB) FromModelToDB(model *clients.Client) {
 	c.TelephoneNumber = model.TelephoneNumber
 }
 
-func (c *clientDB) TableName() string {
+func (c *ClientDB) TableName() string {
 	return "clients"
 }
 
-func (c *clientDB) ID() int32 {
+func (c *ClientDB) ID() int32 {
 	return c.Id
 }
 
 type PostgresRepo struct {
-	*dbPack.Repository[*clientDB, *clients.Client]
+	*dbPack.Repository[*ClientDB, *clients.Client]
 	db *sqlx.DB
 }
 
 func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
-	baseRepo := dbPack.NewRepository[*clientDB, *clients.Client](db)
+	baseRepo := dbPack.NewRepository[*ClientDB, *clients.Client](db)
 	return &PostgresRepo{baseRepo, db}
 }
 
 func (r *PostgresRepo) GetAll(ctx context.Context) ([]clients.Client, error) {
-	var clientsDB []clientDB
+	var clientsDB []ClientDB
 	query := `SELECT id, company_name, contact_person, email, telephone_number FROM clients`
 	err := r.db.SelectContext(ctx, &clientsDB, query)
 	if err != nil {

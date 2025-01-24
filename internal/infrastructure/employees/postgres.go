@@ -12,7 +12,7 @@ type roleDB struct {
 	Role string `db:"role_name"`
 }
 
-type employeeDB struct {
+type EmployeeDB struct {
 	Id       int32  `id:"id"`
 	FullName string `id:"full_name"`
 	Login    string `id:"login"`
@@ -20,7 +20,7 @@ type employeeDB struct {
 	Role     int32  `id:"role_id"`
 }
 
-func (e *employeeDB) FromModelToDB(employee *employees.Employee) {
+func (e *EmployeeDB) FromModelToDB(employee *employees.Employee) {
 	e.Id = employee.Id
 	e.FullName = employee.FullName
 	e.Login = employee.Login
@@ -28,11 +28,11 @@ func (e *employeeDB) FromModelToDB(employee *employees.Employee) {
 	e.Role = employee.Role.Id
 }
 
-func (e *employeeDB) TableName() string {
+func (e *EmployeeDB) TableName() string {
 	return "employees"
 }
 
-func (e *employeeDB) ID() int32 {
+func (e *EmployeeDB) ID() int32 {
 	return e.Id
 }
 
@@ -46,7 +46,9 @@ func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
 
 func (r *PostgresRepo) GetAll(ctx context.Context) ([]*employees.Employee, error) {
 	query := `SELECT e.id, e.full_name, e.login, e.password,
-r.id, r.role_name`
+	r.id, r.role_name
+	FROM employees e
+	LEFT JOIN roles r ON e.role_id = r.id`
 	rows, err := r.db.QueryxContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get employees: %v", err)
@@ -56,12 +58,12 @@ r.id, r.role_name`
 
 	for rows.Next() {
 		var roleDb roleDB
-		var employeeDb employeeDB
-		err := rows.StructScan(roleDb)
+		var employeeDb EmployeeDB
+		err := rows.StructScan(&roleDb)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan role row: %v", err)
 		}
-		err = rows.StructScan(employeeDb)
+		err = rows.StructScan(&employeeDb)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan employee row: %v", err)
 		}
