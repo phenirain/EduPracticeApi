@@ -73,8 +73,8 @@ func (r *PostgresRepo) GetById(ctx context.Context, id int32) (*products.Product
 	return product, nil
 }
 
-func (r *PostgresRepo) GetAll(ctx context.Context) ([]products.Product, error) {
-	var allProducts []products.Product
+func (r *PostgresRepo) GetAll(ctx context.Context) ([]*products.Product, error) {
+	var allProducts []*products.Product
 	productView := MustNewProductView()
 	rows, err := r.db.QueryxContext(ctx, productView.Query)
 	if err != nil {
@@ -99,7 +99,7 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]products.Product, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to create product: %v", err)
 		}
-		allProducts = append(allProducts, *product)
+		allProducts = append(allProducts, product)
 	}
 
 	return allProducts, nil

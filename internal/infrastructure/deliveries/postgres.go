@@ -55,8 +55,8 @@ func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
 	}
 }
 
-func (r *PostgresRepo) GetAll(ctx context.Context) ([]deliveries.Delivery, error) {
-	var allDeliveries []deliveries.Delivery
+func (r *PostgresRepo) GetAll(ctx context.Context) ([]*deliveries.Delivery, error) {
+	var allDeliveries []*deliveries.Delivery
 	deliveryView := MustNewDeliveryView()
 	rows, err := r.db.QueryxContext(ctx, deliveryView.Query)
 	if err != nil {
@@ -98,7 +98,7 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]deliveries.Delivery, error
 			return nil, fmt.Errorf("failed to create order: %v", err)
 		}
 
-		driver, err := deliveries.NewDriver(deliveryView.View.Driver.Id, deliveryView.View.Driver.Name)
+		driver, err := deliveries.NewDriver(deliveryView.View.DriverId.Id, deliveryView.View.DriverId.Name)
 		if err != nil {
 			return nil, fmt.Errorf("failed to init driver entity: %w", err)
 		}
@@ -109,7 +109,7 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]deliveries.Delivery, error
 			return nil, fmt.Errorf("failed to create delivery: %v", err)
 		}
 
-		allDeliveries = append(allDeliveries, *delivery)
+		allDeliveries = append(allDeliveries, delivery)
 	}
 	return allDeliveries, nil
 }

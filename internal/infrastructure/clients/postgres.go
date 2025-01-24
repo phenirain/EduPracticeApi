@@ -1,7 +1,7 @@
 package clients
 
 import (
-	"api/internal/domain/clients"
+	domClient "api/internal/domain/clients"
 	dbPack "api/internal/infrastructure"
 	"context"
 	"fmt"
@@ -16,7 +16,7 @@ type ClientDB struct {
 	TelephoneNumber string `db:"telephone_number"`
 }
 
-func (c *ClientDB) FromModelToDB(model *clients.Client) {
+func (c *ClientDB) FromModelToDB(model *domClient.Client) {
 	c.Id = model.Id
 	c.CompanyName = model.CompanyName
 	c.ContactPerson = model.ContactPerson
@@ -33,17 +33,17 @@ func (c *ClientDB) ID() int32 {
 }
 
 type PostgresRepo struct {
-	*dbPack.Repository[*ClientDB, *clients.Client]
+	*dbPack.Repository[*ClientDB, *domClient.Client]
 	db *sqlx.DB
 }
 
 func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
-	baseRepo := dbPack.NewRepository[*ClientDB, *clients.Client](db)
+	baseRepo := dbPack.NewRepository[*ClientDB, *domClient.Client](db)
 	return &PostgresRepo{baseRepo, db}
 }
 
-func (r *PostgresRepo) GetAll(ctx context.Context) ([]clients.Client, error) {
-	result := make([]clients.Client, 0, 25)
+func (r *PostgresRepo) GetAll(ctx context.Context) ([]*domClient.Client, error) {
+	result := make([]*domClient.Client, 0, 25)
 	clientView := MustNewClientView()
 	rows, err := r.db.QueryxContext(ctx, clientView.Query)
 	if err != nil {
@@ -55,12 +55,12 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]clients.Client, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan client row: %v", err)
 		}
-		client, err := clients.NewClient(clientView.View.Id, clientView.View.CompanyName,
+		client, err := domClient.NewClient(clientView.View.Id, clientView.View.CompanyName,
 			clientView.View.ContactPerson, clientView.View.Email, clientView.View.TelephoneNumber)
 		if err != nil {
 			return nil, fmt.Errorf("failed to init client entity: %w", err)
 		}
-		result = append(result, *client)
+		result = append(result, client)
 	}
 
 	return result, nil

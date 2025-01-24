@@ -2,7 +2,7 @@ package orders
 
 import (
 	domClient "api/internal/domain/clients"
-	"api/internal/domain/orders"
+	domOrder "api/internal/domain/orders"
 	domProduct "api/internal/domain/products"
 	dbPack "api/internal/infrastructure"
 	"context"
@@ -13,16 +13,16 @@ import (
 )
 
 type OrderDB struct {
-	Id         int32              `db:"id"`
-	ProductId  int32              `db:"product_id"`
-	ClientId   int32              `db:"client_id"`
-	Date       time.Time          `db:"order_date"`
-	Status     orders.OrderStatus `db:"status"`
-	Quantity   int32              `db:"quantity"`
-	TotalPrice decimal.Decimal    `db:"total_price"`
+	Id         int32                `db:"id"`
+	ProductId  int32                `db:"product_id"`
+	ClientId   int32                `db:"client_id"`
+	Date       time.Time            `db:"order_date"`
+	Status     domOrder.OrderStatus `db:"status"`
+	Quantity   int32                `db:"quantity"`
+	TotalPrice decimal.Decimal      `db:"total_price"`
 }
 
-func (o *OrderDB) FromModelToDB(order *orders.Order) {
+func (o *OrderDB) FromModelToDB(order *domOrder.Order) {
 	o.Id = order.Id
 	o.ProductId = order.Product.Id
 	o.ClientId = order.Client.Id
@@ -41,20 +41,20 @@ func (o *OrderDB) ID() int32 {
 }
 
 type PostgresRepo struct {
-	*dbPack.Repository[*OrderDB, *orders.Order]
+	*dbPack.Repository[*OrderDB, *domOrder.Order]
 	db *sqlx.DB
 }
 
 func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
-	baseRepo := dbPack.NewRepository[*OrderDB, *orders.Order](db)
+	baseRepo := dbPack.NewRepository[*OrderDB, *domOrder.Order](db)
 	return &PostgresRepo{
 		Repository: baseRepo,
 		db:         db,
 	}
 }
 
-func (r *PostgresRepo) GetAll(ctx context.Context) ([]orders.Order, error) {
-	var allOrders []orders.Order
+func (r *PostgresRepo) GetAll(ctx context.Context) ([]*domOrder.Order, error) {
+	var allOrders []*domOrder.Order
 	orderView := MustNewOrderView()
 	rows, err := r.db.QueryxContext(ctx, orderView.Query)
 	if err != nil {
@@ -88,13 +88,13 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]orders.Order, error) {
 			return nil, fmt.Errorf("failed to create client: %v", err)
 		}
 
-		order, err := orders.NewOrder(orderView.View.Id, *product, *client, orderView.View.Date,
+		order, err := domOrder.NewOrder(orderView.View.Id, *product, *client, orderView.View.Date,
 			orderView.View.Status, orderView.View.Quantity, orderView.View.TotalPrice)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create order: %v", err)
 		}
 
-		allOrders = append(allOrders, *order)
+		allOrders = append(allOrders, order)
 	}
 
 	return allOrders, nil
