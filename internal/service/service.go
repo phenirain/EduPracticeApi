@@ -24,13 +24,13 @@ type ModelRequest[T infrastructure.Model] interface {
 }
 
 type Service[CreateRequest ModelRequest[model], UpdateRequest ModelRequest[model], model infrastructure.Model,
-TDB infrastructure.DbModel[model]] struct {
+	TDB infrastructure.DbModel[model]] struct {
 	Repository Repository[TDB, model]
 }
 
 func NewService[CreateRequest ModelRequest[model], UpdateRequest ModelRequest[model],
-model infrastructure.Model,
-TDB infrastructure.DbModel[model]](repo Repository[TDB, model]) *Service[CreateRequest, UpdateRequest, model, TDB] {
+	model infrastructure.Model, TDB infrastructure.DbModel[model]](repo Repository[TDB, model]) *Service[CreateRequest, UpdateRequest,
+	model, TDB] {
 	return &Service[CreateRequest, UpdateRequest, model, TDB]{Repository: repo}
 }
 
@@ -53,7 +53,7 @@ func (s *Service[CreateRequest, UpdateRequest, model, TDB]) GetAll(ctx context.C
 	if err != nil {
 		return nil, fmt.Errorf("errored getting all %s: %v", dbModel.TableName(), err)
 	}
-	
+
 	return allItems, nil
 }
 
@@ -67,7 +67,7 @@ func (s *Service[CreateRequest, UpdateRequest, model, TDB]) Update(ctx context.C
 	if !exists {
 		return ErrNotFound(dbModel.TableName(), id)
 	}
-	
+
 	model, err := request.ToModel()
 	if err != nil {
 		return fmt.Errorf("invalid model: %v", err)
@@ -88,7 +88,7 @@ func (s *Service[CreateRequest, UpdateRequest, model, TDB]) Delete(ctx context.C
 	if !exists {
 		return ErrNotFound(dbModel.TableName(), id)
 	}
-	
+
 	err = s.Repository.Delete(ctx, id)
 	if err != nil {
 		return fmt.Errorf("errored deleting %s with id: %d: %v", dbModel.TableName(), id, err)
