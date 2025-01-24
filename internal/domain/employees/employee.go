@@ -25,7 +25,7 @@ func NewEmployee(id int32, fullName, login, password string, role Role) (*Employ
 		Role:     role}, nil
 }
 
-func CreateEmployee(surname, fullName, login, password string, role Role) (*Employee, error) {
+func CreateEmployee(fullName, login, password string, role Role) (*Employee, error) {
 	return &Employee{
 		FullName: fullName,
 		Login:    login,
