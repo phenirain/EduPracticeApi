@@ -12,6 +12,10 @@ func (e *Employee) SetId(id int32) {
 	e.Id = id
 }
 
+func (e *Employee) CheckPassword(password string) bool {
+	return e.Password == password
+}
+
 func NewEmployee(id int32, fullName, login, password string, role Role) (*Employee, error) {
 	return &Employee{
 		Id:       id,
