@@ -2,7 +2,7 @@ package products
 
 import (
 	"api/internal/domain/products"
-	dbPack "api/internal/infrastructure/db"
+	dbPack "api/internal/infrastructure"
 	"context"
 	"fmt"
 	"github.com/jmoiron/sqlx"
@@ -69,7 +69,7 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]products.Product, error) {
 		return nil, fmt.Errorf("failed to get products: %v", err)
 	}
 	defer rows.Close()
-
+	
 	for rows.Next() {
 		var productDB ProductDB
 		var productCategoryDB ProductCategoryDB
@@ -81,7 +81,7 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]products.Product, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan product row: %v", err)
 		}
-
+		
 		productCategory, err := products.NewProductCategory(productCategoryDB.Id, productCategoryDB.Name)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create product category: %v", err)
@@ -93,6 +93,6 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]products.Product, error) {
 		}
 		allProducts = append(allProducts, *product)
 	}
-
+	
 	return allProducts, nil
 }

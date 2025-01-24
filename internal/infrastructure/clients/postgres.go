@@ -2,7 +2,7 @@ package clients
 
 import (
 	"api/internal/domain/clients"
-	dbPack "api/internal/infrastructure/db"
+	dbPack "api/internal/infrastructure"
 	"context"
 	"fmt"
 	"github.com/jmoiron/sqlx"

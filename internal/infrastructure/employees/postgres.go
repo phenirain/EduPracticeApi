@@ -2,6 +2,7 @@ package employees
 
 import (
 	"api/internal/domain/employees"
+	dbPack "api/internal/infrastructure"
 	"context"
 	"fmt"
 	"github.com/jmoiron/sqlx"
@@ -37,11 +38,16 @@ func (e *EmployeeDB) ID() int32 {
 }
 
 type PostgresRepo struct {
+	*dbPack.Repository[*EmployeeDB, *employees.Employee]
 	db *sqlx.DB
 }
 
 func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
-	return &PostgresRepo{db: db}
+	baseRepo := dbPack.NewRepository[*EmployeeDB, *employees.Employee](db)
+	return &PostgresRepo{
+		Repository: baseRepo,
+		db:         db,
+	}
 }
 
 func (r *PostgresRepo) GetAll(ctx context.Context) ([]*employees.Employee, error) {

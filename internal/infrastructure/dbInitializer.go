@@ -1,4 +1,4 @@
-package db
+package infrastructure
 
 import (
 	"github.com/jmoiron/sqlx"

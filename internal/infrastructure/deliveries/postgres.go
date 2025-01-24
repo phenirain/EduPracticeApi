@@ -5,6 +5,7 @@ import (
 	"api/internal/domain/deliveries"
 	domOrders "api/internal/domain/orders"
 	domProduct "api/internal/domain/products"
+	dbPack "api/internal/infrastructure"
 	"api/internal/infrastructure/clients"
 	"api/internal/infrastructure/orders"
 	"api/internal/infrastructure/products"
@@ -45,11 +46,16 @@ func (d *DeliveryDB) ID() int32 {
 }
 
 type PostgresRepo struct {
+	*dbPack.Repository[*DeliveryDB, *deliveries.Delivery]
 	db *sqlx.DB
 }
 
 func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
-	return &PostgresRepo{db: db}
+	baseRepo := dbPack.NewRepository[*DeliveryDB, *deliveries.Delivery](db)
+	return &PostgresRepo{
+		Repository: baseRepo,
+		db:         db,
+	}
 }
 
 func (r *PostgresRepo) GetAll(ctx context.Context) ([]deliveries.Delivery, error) {
