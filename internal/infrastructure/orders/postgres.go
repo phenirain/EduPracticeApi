@@ -5,8 +5,6 @@ import (
 	"api/internal/domain/orders"
 	domProduct "api/internal/domain/products"
 	dbPack "api/internal/infrastructure"
-	"api/internal/infrastructure/clients"
-	"api/internal/infrastructure/products"
 	"context"
 	"fmt"
 	"github.com/jmoiron/sqlx"
@@ -57,62 +55,41 @@ func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
 
 func (r *PostgresRepo) GetAll(ctx context.Context) ([]orders.Order, error) {
 	var allOrders []orders.Order
-	query := `
-    SELECT o.id, o.order_date, o.status, o.quantity, o.total_price,
-    p.id, p.product_name, p.article, p.quantity, p.price, p.location, p.reserved_quantity,
-    pc.id, pc.category_name,
-    c.id, c.company_name, c.contact_person, c.email, c.telephone_number
-    FROM orders o
-    LEFT JOIN products p ON o.product_id = p.id
-    LEFT JOIN clients c ON o.client_id = c.id
-    LEFT JOIN product_categories pc ON p.category_id = pc.id`
-	rows, err := r.db.QueryxContext(ctx, query)
+	orderView := MustNewOrderView()
+	rows, err := r.db.QueryxContext(ctx, orderView.Query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get orders: %v", err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var orderDb OrderDB
-		var productDb products.ProductDB
-		var clientDb clients.ClientDB
-		var productCategoryDb products.ProductCategoryDB
-		err := rows.StructScan(&productCategoryDb)
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan product category row: %v", err)
-		}
-		err = rows.StructScan(&productDb)
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan product row: %v", err)
-		}
-		err = rows.StructScan(&clientDb)
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan client row: %v", err)
-		}
-		err = rows.StructScan(&orderDb)
+		err := rows.StructScan(&orderView.View)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan order row: %v", err)
 		}
 
-		productCategory, err := domProduct.NewProductCategory(productCategoryDb.Id, productCategoryDb.Name)
+		productCategory, err := domProduct.NewProductCategory(orderView.View.Product.Category.Id,
+			orderView.View.Product.Category.Name)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create product category: %v", err)
 		}
-		product, err := domProduct.NewProduct(productDb.Id, productDb.Name, productDb.Article,
-			*productCategory, productDb.Quantity, productDb.Price, productDb.Location,
-			productDb.ReservedQuantity)
+		product, err := domProduct.NewProduct(orderView.View.Product.Id, orderView.View.Product.Name,
+			orderView.View.Product.Article, *productCategory, orderView.View.Product.Quantity,
+			orderView.View.Product.Price, orderView.View.Product.Location,
+			orderView.View.Product.ReservedQuantity)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create product: %v", err)
 		}
 
-		client, err := domClient.NewClient(clientDb.Id, clientDb.CompanyName, clientDb.ContactPerson,
-			clientDb.Email, clientDb.TelephoneNumber)
+		client, err := domClient.NewClient(orderView.View.Client.Id, orderView.View.Client.CompanyName,
+			orderView.View.Client.ContactPerson,
+			orderView.View.Client.Email, orderView.View.Client.TelephoneNumber)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create client: %v", err)
 		}
 
-		order, err := orders.NewOrder(orderDb.Id, *product, *client, orderDb.Date, orderDb.Status,
-			orderDb.Quantity, orderDb.TotalPrice)
+		order, err := orders.NewOrder(orderView.View.Id, *product, *client, orderView.View.Date,
+			orderView.View.Status, orderView.View.Quantity, orderView.View.TotalPrice)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create order: %v", err)
 		}

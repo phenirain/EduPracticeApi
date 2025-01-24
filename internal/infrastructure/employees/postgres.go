@@ -8,17 +8,12 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type roleDB struct {
-	Id   int32  `db:"id"`
-	Role string `db:"role_name"`
-}
-
 type EmployeeDB struct {
 	Id       int32  `id:"id"`
 	FullName string `id:"full_name"`
 	Login    string `id:"login"`
 	Password string `id:"password"`
-	Role     int32  `id:"role_id"`
+	RoleId   int32  `id:"role_id"`
 }
 
 func (e *EmployeeDB) FromModelToDB(employee *employees.Employee) {
@@ -26,7 +21,7 @@ func (e *EmployeeDB) FromModelToDB(employee *employees.Employee) {
 	e.FullName = employee.FullName
 	e.Login = employee.Login
 	e.Password = employee.Password
-	e.Role = employee.Role.Id
+	e.RoleId = employee.Role.Id
 }
 
 func (e *EmployeeDB) TableName() string {
@@ -50,12 +45,29 @@ func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
 	}
 }
 
+func (r *PostgresRepo) GetByLogin(ctx context.Context, login string) (*employees.Employee, error) {
+	employeeView := MustNewEmployeeView()
+	err := r.db.GetContext(ctx, &employeeView.View, employeeView.Query+`WHERE e.login = $1`, login)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get employee by login: %w", err)
+	}
+
+	role, err := employees.NewRole(employeeView.View.Role.RoleId, employeeView.View.Role.RoleName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init role entity: %w", err)
+	}
+	employee, err := employees.NewEmployee(employeeView.View.Id, employeeView.View.FullName,
+		employeeView.View.Login, employeeView.View.Password, *role)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init employee entity: %w", err)
+	}
+
+	return employee, nil
+}
+
 func (r *PostgresRepo) GetAll(ctx context.Context) ([]*employees.Employee, error) {
-	query := `SELECT e.id, e.full_name, e.login, e.password,
-	r.id, r.role_name
-	FROM employees e
-	LEFT JOIN roles r ON e.role_id = r.id`
-	rows, err := r.db.QueryxContext(ctx, query)
+	employeeView := MustNewEmployeeView()
+	rows, err := r.db.QueryxContext(ctx, employeeView.Query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get employees: %v", err)
 	}
@@ -63,22 +75,16 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*employees.Employee, error
 	result := make([]*employees.Employee, 0, 25)
 
 	for rows.Next() {
-		var roleDb roleDB
-		var employeeDb EmployeeDB
-		err := rows.StructScan(&roleDb)
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan role row: %v", err)
-		}
-		err = rows.StructScan(&employeeDb)
+		err = rows.StructScan(&employeeView.View)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan employee row: %v", err)
 		}
-		role, err := employees.NewRole(roleDb.Id, roleDb.Role)
+		role, err := employees.NewRole(employeeView.View.Role.RoleId, employeeView.View.Role.RoleName)
 		if err != nil {
 			return nil, fmt.Errorf("failed to init role entity: %w", err)
 		}
-		employee, err := employees.NewEmployee(employeeDb.Id, employeeDb.FullName, employeeDb.Login,
-			employeeDb.Password, *role)
+		employee, err := employees.NewEmployee(employeeView.View.Id, employeeView.View.FullName,
+			employeeView.View.Login, employeeView.View.Password, *role)
 		if err != nil {
 			return nil, fmt.Errorf("failed to init employee entity: %w", err)
 		}

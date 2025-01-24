@@ -43,16 +43,20 @@ func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
 }
 
 func (r *PostgresRepo) GetAll(ctx context.Context) ([]clients.Client, error) {
-	var clientsDB []ClientDB
-	query := `SELECT id, company_name, contact_person, email, telephone_number FROM clients`
-	err := r.db.SelectContext(ctx, &clientsDB, query)
+	result := make([]clients.Client, 0, 25)
+	clientView := MustNewClientView()
+	rows, err := r.db.QueryxContext(ctx, clientView.Query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get users: %v", err)
 	}
-
-	result := make([]clients.Client, 0, len(clientsDB))
-	for _, clientDb := range clientsDB {
-		client, err := clients.NewClient(clientDb.Id, clientDb.CompanyName, clientDb.ContactPerson, clientDb.Email, clientDb.TelephoneNumber)
+	defer rows.Close()
+	for rows.Next() {
+		err := rows.StructScan(&clientView.View)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan client row: %v", err)
+		}
+		client, err := clients.NewClient(clientView.View.Id, clientView.View.CompanyName,
+			clientView.View.ContactPerson, clientView.View.Email, clientView.View.TelephoneNumber)
 		if err != nil {
 			return nil, fmt.Errorf("failed to init client entity: %w", err)
 		}

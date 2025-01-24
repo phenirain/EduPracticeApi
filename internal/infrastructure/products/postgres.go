@@ -9,11 +9,6 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type ProductCategoryDB struct {
-	Id   int32  `db:"id"`
-	Name string `db:"name"`
-}
-
 type ProductDB struct {
 	Id               int32           `db:"id"`
 	Name             string          `db:"name"`
@@ -59,40 +54,32 @@ func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
 
 func (r *PostgresRepo) GetAll(ctx context.Context) ([]products.Product, error) {
 	var allProducts []products.Product
-	query := `
-	SELECT p.id, p.product_name, p.article, p.quantity, p.price, p.location, p.reserved_quantity,
-    pc.id, pc.category_name
-    FROM products p
-	LEFT JOIN product_categories pc ON p.category_id = pc.id`
-	rows, err := r.db.QueryxContext(ctx, query)
+	productView := MustNewProductView()
+	rows, err := r.db.QueryxContext(ctx, productView.Query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get products: %v", err)
 	}
 	defer rows.Close()
-	
+
 	for rows.Next() {
-		var productDB ProductDB
-		var productCategoryDB ProductCategoryDB
-		err := rows.StructScan(&productCategoryDB)
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan product category row: %v", err)
-		}
-		err = rows.StructScan(&productDB)
+		err := rows.StructScan(&productView.View)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan product row: %v", err)
 		}
-		
-		productCategory, err := products.NewProductCategory(productCategoryDB.Id, productCategoryDB.Name)
+
+		productCategory, err := products.NewProductCategory(productView.View.Category.Id,
+			productView.View.Category.Name)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create product category: %v", err)
 		}
-		product, err := products.NewProduct(productDB.Id, productDB.Name, productDB.Article,
-			*productCategory, productDB.Quantity, productDB.Price, productDB.Location, productDB.ReservedQuantity)
+		product, err := products.NewProduct(productView.View.Id, productView.View.Name, productView.View.Article,
+			*productCategory, productView.View.Quantity, productView.View.Price, productView.View.Location,
+			productView.View.ReservedQuantity)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create product: %v", err)
 		}
 		allProducts = append(allProducts, *product)
 	}
-	
+
 	return allProducts, nil
 }

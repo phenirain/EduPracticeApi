@@ -6,9 +6,6 @@ import (
 	domOrders "api/internal/domain/orders"
 	domProduct "api/internal/domain/products"
 	dbPack "api/internal/infrastructure"
-	"api/internal/infrastructure/clients"
-	"api/internal/infrastructure/orders"
-	"api/internal/infrastructure/products"
 	"context"
 	"fmt"
 	"github.com/jmoiron/sqlx"
@@ -60,79 +57,54 @@ func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
 
 func (r *PostgresRepo) GetAll(ctx context.Context) ([]deliveries.Delivery, error) {
 	var allDeliveries []deliveries.Delivery
-	query := `
-SELECT del.id, del.transport, del.route, del.status o.id, o.order_date, o.status, o.quantity, o.total_price,
-p.id, p.product_name, p.article, p.quantity, p.price, p.location, p.reserved_quantity 
-pc.id, pc.category_name cl.id,
-cl.company_name, cl.contact_person, cl.email, cl.telephone_number, 
-dr.id, dr.full_name
-FROM deliveries del
-LEFT JOIN orders o ON del.order_id = o.id
-LEFT JOIN products p ON o.product_id = p.id
-LEFT JOIN product_categories pc ON p.category_id = pc.id
-LEFT JOIN clients cl ON o.client_id = cl.id
-LEFT JOIN drivers dr ON del.driver_id = dr.id`
-	rows, err := r.db.QueryxContext(ctx, query)
+	deliveryView := MustNewDeliveryView()
+	rows, err := r.db.QueryxContext(ctx, deliveryView.Query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get deliveries: %v", err)
 	}
 	for rows.Next() {
-		var deliveryDb DeliveryDB
-		var driverDb DriverDB
-		var orderDb orders.OrderDB
-		var productDb products.ProductDB
-		var clientDb clients.ClientDB
-		var productCategoryDb products.ProductCategoryDB
-		err := rows.StructScan(&driverDb)
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan driver row: %v", err)
-		}
-		err = rows.StructScan(&productCategoryDb)
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan product category row: %v", err)
-		}
-		err = rows.StructScan(&productDb)
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan product row: %v", err)
-		}
-		err = rows.StructScan(&clientDb)
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan client row: %v", err)
-		}
-		err = rows.StructScan(&orderDb)
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan order row: %v", err)
-		}
-		err = rows.StructScan(&deliveryDb)
+		err := rows.StructScan(&deliveryView.View)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan delivery row: %v", err)
 		}
 
-		driver, err := deliveries.NewDriver(driverDb.Id, driverDb.FullName)
+		productCategory, err := domProduct.NewProductCategory(deliveryView.View.Order.Product.Category.Id,
+			deliveryView.View.Order.Product.Category.Name)
 		if err != nil {
-			return nil, fmt.Errorf("failed to init driver entity: %w", err)
+			return nil, fmt.Errorf("failed to create product category: %v", err)
 		}
-		productCategory, err := domProduct.NewProductCategory(productCategoryDb.Id, productCategoryDb.Name)
+		product, err := domProduct.NewProduct(deliveryView.View.Order.Product.Id,
+			deliveryView.View.Order.Product.Name, deliveryView.View.Order.Product.Article, *productCategory,
+			deliveryView.View.Order.Product.Quantity,
+			deliveryView.View.Order.Product.Price, deliveryView.View.Order.Product.Location,
+			deliveryView.View.Order.Product.ReservedQuantity)
 		if err != nil {
-			return nil, fmt.Errorf("failed to init product category entity: %w", err)
+			return nil, fmt.Errorf("failed to create product: %v", err)
 		}
-		product, err := domProduct.NewProduct(productDb.Id, productDb.Name, productDb.Article,
-			*productCategory, productDb.Quantity, productDb.Price, productDb.Location, productDb.ReservedQuantity)
-		if err != nil {
-			return nil, fmt.Errorf("failed to init product entity: %w", err)
-		}
-		client, err := domClient.NewClient(clientDb.Id, clientDb.CompanyName, clientDb.ContactPerson,
-			clientDb.Email, clientDb.TelephoneNumber)
+
+		client, err := domClient.NewClient(deliveryView.View.Order.Client.Id,
+			deliveryView.View.Order.Client.CompanyName,
+			deliveryView.View.Order.Client.ContactPerson,
+			deliveryView.View.Order.Client.Email, deliveryView.View.Order.Client.TelephoneNumber)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create client: %v", err)
 		}
-		order, err := domOrders.NewOrder(orderDb.Id, *product, *client, orderDb.Date, orderDb.Status,
-			orderDb.Quantity, orderDb.TotalPrice)
+
+		order, err := domOrders.NewOrder(deliveryView.View.Order.Id, *product, *client,
+			deliveryView.View.Order.Date,
+			deliveryView.View.Order.Status, deliveryView.View.Order.Quantity,
+			deliveryView.View.Order.TotalPrice)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create order: %v", err)
 		}
 
-		delivery, err := deliveries.NewDelivery(deliveryDb.Id, *order, deliveryDb.Transport, deliveryDb.Route, deliveryDb.Status, *driver)
+		driver, err := deliveries.NewDriver(deliveryView.View.Driver.Id, deliveryView.View.Driver.Name)
+		if err != nil {
+			return nil, fmt.Errorf("failed to init driver entity: %w", err)
+		}
+
+		delivery, err := deliveries.NewDelivery(deliveryView.View.Id, *order, deliveryView.View.Transport,
+			deliveryView.View.Route, deliveryView.View.Status, *driver)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create delivery: %v", err)
 		}

@@ -29,13 +29,13 @@ func NewRepository[TDB DbModel[T], T Model](db *sqlx.DB) *Repository[TDB, T] {
 func (r *Repository[TDB, T]) Create(ctx context.Context, model T) (T, error) {
 	var dbModel TDB
 	dbModel.FromModelToDB(model)
-	
+
 	val := reflect.ValueOf(dbModel)
 	typ := reflect.TypeOf(dbModel)
 	fields := make([]string, 0, typ.NumField()-1)
 	args := make([]interface{}, 0, typ.NumField()-1)
 	argsIds := make([]string, 0, typ.NumField()-1)
-	
+
 	for i := 0; i < typ.NumField(); i++ {
 		if typ.Field(i).Name == "Id" {
 			continue
@@ -46,7 +46,7 @@ func (r *Repository[TDB, T]) Create(ctx context.Context, model T) (T, error) {
 	}
 	query := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s)`, dbModel.TableName(), strings.Join(fields, ", "+
 		""), strings.Join(argsIds, ", "))
-	
+
 	var id int32
 	err := r.db.QueryRowxContext(ctx, query, args...).Scan(&id)
 	if err != nil {
@@ -61,12 +61,12 @@ func (r *Repository[TDB, T]) Create(ctx context.Context, model T) (T, error) {
 func (r *Repository[TDB, T]) Update(ctx context.Context, model T) error {
 	var dbModel TDB
 	dbModel.FromModelToDB(model)
-	
+
 	val := reflect.ValueOf(dbModel)
 	typ := reflect.TypeOf(dbModel)
 	fields := make([]string, 0, typ.NumField()-1)
 	args := make([]interface{}, 0, typ.NumField()-1)
-	
+
 	for i := 0; i < typ.NumField(); i++ {
 		if typ.Field(i).Name == "Id" {
 			continue
@@ -74,9 +74,9 @@ func (r *Repository[TDB, T]) Update(ctx context.Context, model T) error {
 		fields = append(fields, fmt.Sprintf("%s = $%d", typ.Field(i).Name, len(args)+1))
 		args = append(args, val.Field(i))
 	}
-	
+
 	query := fmt.Sprintf(`UPDATE %s SET %s WHERE id = $%d`, dbModel.TableName(), strings.Join(fields, ", "), dbModel.ID())
-	
+
 	_, err := r.db.ExecContext(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("failed to update %s with id = %d: %v", dbModel.TableName(), dbModel.ID(), err)
