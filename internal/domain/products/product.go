@@ -7,7 +7,7 @@ type Product struct {
 	Name             string          `json:"name"`
 	Article          string          `json:"article"`
 	Category         ProductCategory `json:"category"`
-	Quantity         int32           `json:"quantity"`
+	Quantity         int32           `json:"quantity_in_stock"`
 	Price            decimal.Decimal `json:"price"`
 	Location         string          `json:"location"`
 	ReservedQuantity int32           `json:"reserved_quantity"`

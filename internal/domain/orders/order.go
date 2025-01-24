@@ -11,10 +11,10 @@ type Order struct {
 	Id         int32            `json:"id"`
 	Product    products.Product `json:"product"`
 	Client     clients.Client   `json:"client"`
-	Date       time.Time        `json:"orderDate"`
-	Status     OrderStatus      `json:"orderStatus"`
+	Date       time.Time        `json:"order_date"`
+	Status     OrderStatus      `json:"order_status"`
 	Quantity   int32            `json:"quantity"`
-	TotalPrice decimal.Decimal  `json:"totalPrice"`
+	TotalPrice decimal.Decimal  `json:"total_price"`
 }
 
 func (o *Order) SetId(id int32) {
