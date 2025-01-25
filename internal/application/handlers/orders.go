@@ -18,7 +18,7 @@ func (h *Handler) CreateOrder(c *gin.Context) {
 		c.JSON(http.StatusOK, NewInternalServerErrorHttpResponse(err.Error()))
 		return
 	}
-	c.JSON(http.StatusOK, NewSuccessHttpResponse(order))
+	c.JSON(http.StatusOK, NewCreatedHttpResponse(order))
 }
 
 func (h *Handler) GetAllOrders(c *gin.Context) {

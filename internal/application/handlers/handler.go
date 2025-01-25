@@ -23,6 +23,14 @@ func NewSuccessHttpResponse(data interface{}) *HttpResponse {
 	}
 }
 
+func NewCreatedHttpResponse(data interface{}) *HttpResponse {
+	return &HttpResponse{
+		Status:  201,
+		Message: "Created",
+		Data:    data,
+	}
+}
+
 func NewBadRequestHttpResponse(message string) *HttpResponse {
 	return &HttpResponse{
 		Status:  400,

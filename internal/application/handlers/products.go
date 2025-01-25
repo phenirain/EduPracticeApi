@@ -18,7 +18,7 @@ func (h *Handler) CreateProduct(c *gin.Context) {
 		c.JSON(http.StatusOK, NewInternalServerErrorHttpResponse(err.Error()))
 		return
 	}
-	c.JSON(http.StatusOK, NewSuccessHttpResponse(product))
+	c.JSON(http.StatusOK, NewCreatedHttpResponse(product))
 }
 
 func (h *Handler) GetAllProducts(c *gin.Context) {

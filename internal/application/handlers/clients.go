@@ -18,7 +18,7 @@ func (h *Handler) CreateClient(c *gin.Context) {
 		c.JSON(http.StatusOK, NewInternalServerErrorHttpResponse(err.Error()))
 		return
 	}
-	c.JSON(http.StatusOK, NewSuccessHttpResponse(client))
+	c.JSON(http.StatusOK, NewCreatedHttpResponse(client))
 }
 
 func (h *Handler) UpdateClient(c *gin.Context) {

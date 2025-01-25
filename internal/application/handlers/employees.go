@@ -18,7 +18,7 @@ func (h *Handler) CreateEmployee(c *gin.Context) {
 		c.JSON(http.StatusOK, NewInternalServerErrorHttpResponse(err.Error()))
 		return
 	}
-	c.JSON(http.StatusOK, NewSuccessHttpResponse(employee))
+	c.JSON(http.StatusOK, NewCreatedHttpResponse(employee))
 }
 
 func (h *Handler) GetAllEmployees(c *gin.Context) {

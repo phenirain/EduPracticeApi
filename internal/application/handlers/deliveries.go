@@ -18,7 +18,7 @@ func (h *Handler) CreateDelivery(c *gin.Context) {
 		c.JSON(http.StatusOK, NewInternalServerErrorHttpResponse(err.Error()))
 		return
 	}
-	c.JSON(http.StatusOK, NewSuccessHttpResponse(delivery))
+	c.JSON(http.StatusOK, NewCreatedHttpResponse(delivery))
 }
 
 func (h *Handler) GetAllDeliveries(c *gin.Context) {
