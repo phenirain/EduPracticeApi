@@ -29,7 +29,7 @@ func MustLoadConfig() *Config {
 		apiTimeout = 5 * time.Second
 	}
 	cfg.ApiTimeout = apiTimeout
-	
+
 	secret := []byte(os.Getenv("SECRET"))
 	tokenTTL, err := time.ParseDuration(os.Getenv("TOKEN_TTL"))
 	if err != nil {
@@ -44,10 +44,10 @@ func MustLoadConfig() *Config {
 		TokenTTL:        tokenTTL,
 		RefreshTokenTTL: refreshTokenTTL,
 	}
-	
+
 	if err := env.Parse(&cfg); err != nil {
 		panic(err)
 	}
-	
+
 	return &cfg
 }
