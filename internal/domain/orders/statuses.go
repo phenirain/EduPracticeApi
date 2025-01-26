@@ -7,5 +7,5 @@ const (
 	OrderStatusPaid       OrderStatus = "оплачен"
 	OrderStatusDelivering OrderStatus = "в доставке"
 	OrderStatusCompleted  OrderStatus = "завершен"
-	OrderStatusCanceled   OrderStatus = "оплачен"
+	OrderStatusCanceled   OrderStatus = "отменен"
 )
