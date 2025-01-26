@@ -3,8 +3,29 @@ package deliveries
 import (
 	"api/internal/domain/deliveries"
 	"api/internal/domain/orders"
+	deliveryDB "api/internal/infrastructure/deliveries"
+	"api/internal/service"
+	"context"
 	"time"
 )
+
+type AdditionalRepository interface {
+	GetAllDrivers(ctx context.Context) ([]*deliveries.Driver, error)
+}
+
+type DeliveryService struct {
+	*service.Service[*CreateDeliveryRequest, *UpdateDeliveryRequest, *deliveries.Delivery, *deliveryDB.DeliveryDB]
+	AdditionalRepository
+}
+
+func NewDeliveryService(
+	deliveryRepo service.Repository[*deliveryDB.DeliveryDB, *deliveries.Delivery],
+	additionalRepo AdditionalRepository,
+) *DeliveryService {
+	deliveryService := service.NewService[*CreateDeliveryRequest, *UpdateDeliveryRequest, *deliveries.Delivery,
+		*deliveryDB.DeliveryDB](deliveryRepo)
+	return &DeliveryService{Service: deliveryService, AdditionalRepository: additionalRepo}
+}
 
 type CreateDeliveryRequest struct {
 	OrderId   int32                     `json:"order_id"`

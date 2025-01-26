@@ -2,10 +2,8 @@ package init
 
 import (
 	domClient "api/internal/domain/clients"
-	domDelivery "api/internal/domain/deliveries"
 	domEmployee "api/internal/domain/employees"
 	dbClient "api/internal/infrastructure/clients"
-	dbDelivery "api/internal/infrastructure/deliveries"
 	dbEmployee "api/internal/infrastructure/employees"
 	"api/internal/infrastructure/init"
 	"api/internal/service"
@@ -25,8 +23,7 @@ type Services struct {
 	EmployeeService service.Service[*employees.CreateEmployeeRequest, *employees.UpdateEmployeeRequest,
 		*domEmployee.Employee, *dbEmployee.EmployeeDB]
 	ProductService  products.ProductService
-	DeliveryService service.Service[*deliveries.CreateDeliveryRequest, *deliveries.UpdateDeliveryRequest,
-		*domDelivery.Delivery, *dbDelivery.DeliveryDB]
+	DeliveryService deliveries.DeliveryService
 }
 
 func NewServices(uow init.UnitOfWork, config auth.TokenConfig) *Services {
@@ -37,8 +34,7 @@ func NewServices(uow init.UnitOfWork, config auth.TokenConfig) *Services {
 			*domClient.Client, *dbClient.ClientDB](&uow.ClientRepository),
 		EmployeeService: *service.NewService[*employees.CreateEmployeeRequest, *employees.UpdateEmployeeRequest,
 			*domEmployee.Employee, *dbEmployee.EmployeeDB](&uow.EmployeeRepository),
-		ProductService: *products.NewProductService(&uow.ProductRepository, &uow.ProductRepository),
-		DeliveryService: *service.NewService[*deliveries.CreateDeliveryRequest,
-			*deliveries.UpdateDeliveryRequest, *domDelivery.Delivery, *dbDelivery.DeliveryDB](&uow.DeliveryRepository),
+		ProductService:  *products.NewProductService(&uow.ProductRepository, &uow.ProductRepository),
+		DeliveryService: *deliveries.NewDeliveryService(&uow.DeliveryRepository, &uow.DeliveryRepository),
 	}
 }

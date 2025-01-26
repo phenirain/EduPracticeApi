@@ -82,6 +82,7 @@ func (h *Handler) InitRouters() *gin.Engine {
 			delivery.GET("", h.GetAllDeliveries)
 			delivery.PUT("/:id", h.UpdateDelivery)
 			delivery.DELETE("/:id", h.DeleteDelivery)
+			delivery.GET("/drivers", h.GetAllDrivers)
 		}
 		order := api.Group("/orders")
 		{

@@ -58,6 +58,30 @@ func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
 	}
 }
 
+func (r *PostgresRepo) GetAllDrivers(ctx context.Context) ([]*deliveries.Driver, error) {
+	var drivers []*deliveries.Driver
+	rows, err := r.db.QueryxContext(ctx, "SELECT id as driver_id, "+
+		"full_name as driver_full_name  FROM drivers")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var driverDB Driver
+		err := rows.StructScan(&driverDB)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan driver row: %v", err)
+		}
+		driver, err := deliveries.NewDriver(driverDB.Id, driverDB.Name)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create driver: %v", err)
+		}
+		drivers = append(drivers, driver)
+	}
+	return drivers, nil
+}
+
 func (r *PostgresRepo) GetAll(ctx context.Context) ([]*deliveries.Delivery, error) {
 	var allDeliveries []*deliveries.Delivery
 	deliveryView := MustNewDeliveryView()

@@ -21,6 +21,15 @@ func (h *Handler) CreateDelivery(c *gin.Context) {
 	c.JSON(http.StatusOK, NewCreatedHttpResponse(delivery))
 }
 
+func (h *Handler) GetAllDrivers(c *gin.Context) {
+	allDrivers, err := h.Services.DeliveryService.GetAllDrivers(c)
+	if err != nil {
+		c.JSON(http.StatusOK, NewInternalServerErrorHttpResponse(err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, NewSuccessHttpResponse(allDrivers))
+}
+
 func (h *Handler) GetAllDeliveries(c *gin.Context) {
 	allDeliveries, err := h.Services.DeliveryService.GetAll(c)
 	if err != nil {
