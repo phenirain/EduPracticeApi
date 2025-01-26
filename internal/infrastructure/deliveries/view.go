@@ -3,6 +3,7 @@ package deliveries
 import (
 	"api/internal/domain/deliveries"
 	"api/internal/infrastructure/orders"
+	"time"
 )
 
 type DeliveryView struct {
@@ -12,7 +13,8 @@ type DeliveryView struct {
 
 func MustNewDeliveryView() *DeliveryView {
 	return &DeliveryView{
-		Query: `SELECT del.id as d_id, del.transport as d_transport, del.route as d_route,
+		Query: `SELECT del.id as d_id, del.delivery_date as d_delivery_date, del.transport as d_transport,
+	del.route as d_route,
 	del.status as d_status, o.id as o_id, o.order_date as o_order_date, o.status as o_status,
 	o.quantity o_quantity, o.total_price as o_total_price, p.id as p_id, p.product_name,
 	p.article as p_article, p.quantity as p_quantity, p.price as p_price, p.location as p_location,
@@ -36,6 +38,7 @@ type Driver struct {
 type DeliveryViewDb struct {
 	Id        int32 `db:"d_id"`
 	Order     orders.OrderViewDb
+	Date      time.Time                 `db:"d_delivery_date"`
 	Transport string                    `db:"d_transport"`
 	Route     string                    `db:"d_route"`
 	Status    deliveries.DeliveryStatus `db:"d_status"`

@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS deliveries
     id        SERIAL PRIMARY KEY,
     order_id  INT REFERENCES orders (ID) NOT NULL,
     driver_id INT REFERENCES drivers (id) NOT NULL,
+    delivery_date TIMESTAMP NOT NULL
     transport TEXT NOT NULL,
     route TEXT NOT NULL,
     status VARCHAR(30) NOT NULL,

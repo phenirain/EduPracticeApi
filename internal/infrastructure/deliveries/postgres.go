@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"time"
 )
 
 type DriverDB struct {
@@ -19,6 +20,7 @@ type DriverDB struct {
 type DeliveryDB struct {
 	Id        int32                     `db:"id"`
 	OrderId   int32                     `db:"order_id"`
+	Date      time.Time                 `db:"delivery_date"`
 	Transport string                    `db:"transport"`
 	Route     string                    `db:"route"`
 	Status    deliveries.DeliveryStatus `db:"status"`
@@ -27,6 +29,7 @@ type DeliveryDB struct {
 
 func (d *DeliveryDB) FromModelToDB(delivery *deliveries.Delivery) {
 	d.Id = delivery.Id
+	d.Date = delivery.Date
 	d.OrderId = delivery.Order.Id
 	d.Transport = delivery.Transport
 	d.Route = delivery.Route
@@ -67,7 +70,7 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*deliveries.Delivery, erro
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan delivery row: %v", err)
 		}
-
+		
 		productCategory, err := domProduct.NewProductCategory(deliveryView.View.Order.Product.Category.Id,
 			deliveryView.View.Order.Product.Category.Name)
 		if err != nil {
@@ -81,7 +84,7 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*deliveries.Delivery, erro
 		if err != nil {
 			return nil, fmt.Errorf("failed to create product: %v", err)
 		}
-
+		
 		client, err := domClient.NewClient(deliveryView.View.Order.Client.Id,
 			deliveryView.View.Order.Client.CompanyName,
 			deliveryView.View.Order.Client.ContactPerson,
@@ -89,7 +92,7 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*deliveries.Delivery, erro
 		if err != nil {
 			return nil, fmt.Errorf("failed to create client: %v", err)
 		}
-
+		
 		order, err := domOrders.NewOrder(deliveryView.View.Order.Id, *product, *client,
 			deliveryView.View.Order.Date,
 			deliveryView.View.Order.Status, deliveryView.View.Order.Quantity,
@@ -97,18 +100,19 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*deliveries.Delivery, erro
 		if err != nil {
 			return nil, fmt.Errorf("failed to create order: %v", err)
 		}
-
-		driver, err := deliveries.NewDriver(deliveryView.View.DriverId.Id, deliveryView.View.DriverId.Name)
+		
+		driver, err := deliveries.NewDriver(deliveryView.View.Driver.Id, deliveryView.View.Driver.Name)
 		if err != nil {
 			return nil, fmt.Errorf("failed to init driver entity: %w", err)
 		}
-
-		delivery, err := deliveries.NewDelivery(deliveryView.View.Id, *order, deliveryView.View.Transport,
+		
+		delivery, err := deliveries.NewDelivery(deliveryView.View.Id, *order,
+			deliveryView.View.Date, deliveryView.View.Transport,
 			deliveryView.View.Route, deliveryView.View.Status, *driver)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create delivery: %v", err)
 		}
-
+		
 		allDeliveries = append(allDeliveries, delivery)
 	}
 	return allDeliveries, nil
