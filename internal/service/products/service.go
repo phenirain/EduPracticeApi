@@ -2,9 +2,30 @@ package products
 
 import (
 	"api/internal/domain/products"
+	productDB "api/internal/infrastructure/products"
+	"api/internal/service"
+	"context"
 	"fmt"
 	"github.com/shopspring/decimal"
 )
+
+type AdditionalRepository interface {
+	GetAllCategories(ctx context.Context) ([]*products.ProductCategory, error)
+}
+
+type ProductService struct {
+	*service.Service[*CreateProductRequest, *UpdateProductRequest, *products.Product, *productDB.ProductDB]
+	AdditionalRepository
+}
+
+func NewProductService(
+	productRepo service.Repository[*productDB.ProductDB, *products.Product],
+	additionalRepo AdditionalRepository,
+) *ProductService {
+	productService := service.NewService[*CreateProductRequest, *UpdateProductRequest, *products.Product,
+		*productDB.ProductDB](productRepo)
+	return &ProductService{Service: productService, AdditionalRepository: additionalRepo}
+}
 
 type CreateProductRequest struct {
 	Name             string          `json:"name"`

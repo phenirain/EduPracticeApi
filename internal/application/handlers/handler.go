@@ -74,6 +74,7 @@ func (h *Handler) InitRouters() *gin.Engine {
 			product.GET("", h.GetAllProducts)
 			product.PUT("/:id", h.UpdateProduct)
 			product.DELETE("/:id", h.DeleteProduct)
+			product.GET("/categories", h.GetAllCategories)
 		}
 		delivery := api.Group("/deliveries")
 		{

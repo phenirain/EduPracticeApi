@@ -30,6 +30,15 @@ func (h *Handler) GetAllProducts(c *gin.Context) {
 	c.JSON(http.StatusOK, NewSuccessHttpResponse(allProducts))
 }
 
+func (h *Handler) GetAllCategories(c *gin.Context) {
+	allCategories, err := h.Services.ProductService.GetAllCategories(c)
+    if err!= nil {
+        c.JSON(http.StatusOK, NewInternalServerErrorHttpResponse(err.Error()))
+        return
+    }
+    c.JSON(http.StatusOK, NewSuccessHttpResponse(allCategories))
+}
+
 func (h *Handler) UpdateProduct(c *gin.Context) {
 	var updateRequest products.UpdateProductRequest
 	if err := c.BindJSON(&updateRequest); err != nil {

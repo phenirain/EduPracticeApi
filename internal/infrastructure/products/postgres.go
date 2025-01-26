@@ -52,6 +52,29 @@ func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
 	}
 }
 
+func (r *PostgresRepo) GetAllCategories(ctx context.Context) ([]*products.ProductCategory, error) {
+	categories := make([]*products.ProductCategory, 0, 25)
+	rows, err := r.db.QueryxContext(ctx, "SELECT id as category_id, category_name FROM product_categories")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var category ProductCategory
+		err := rows.StructScan(&category)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan product category row: %v", err)
+		}
+		productCategory, err := products.NewProductCategory(category.Id, category.Name)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create product category: %v", err)
+		}
+		categories = append(categories, productCategory)
+	}
+	return categories, nil
+}
+
 func (r *PostgresRepo) GetById(ctx context.Context, id int32) (*products.Product, error) {
 	var productView ProductView
 	err := r.db.GetContext(ctx, &productView.View, productView.Query+"WHERE p.id = $1", id)
