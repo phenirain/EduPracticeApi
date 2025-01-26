@@ -90,7 +90,7 @@ func (h *Handler) InitRouters() *gin.Engine {
 			order.PUT("/:id", h.UpdateOrder)
 			order.DELETE("/:id", h.DeleteOrder)
 			order.POST("/reserve", h.ReserveOrder)
-			order.POST("/complete", h.CompleteOrder)
+			order.PUT("/complete", h.CompleteOrder)
 		}
 	}
 	return router
