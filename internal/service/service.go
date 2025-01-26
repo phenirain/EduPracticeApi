@@ -35,11 +35,11 @@ func NewService[CreateRequest ModelRequest[model], UpdateRequest ModelRequest[mo
 }
 
 func (s *Service[CreateRequest, UpdateRequest, model, TDB]) Create(ctx context.Context, request CreateRequest) (*model, error) {
-	model, err := request.ToModel()
+	requestModel, err := request.ToModel()
 	if err != nil {
 		return nil, fmt.Errorf("invalid model: %v", err)
 	}
-	item, err := s.Repository.Create(ctx, model)
+	item, err := s.Repository.Create(ctx, requestModel)
 	var dbModel TDB
 	if err != nil {
 		return nil, fmt.Errorf("errored creating new item of %s: %v", dbModel.TableName(), err)
@@ -68,11 +68,11 @@ func (s *Service[CreateRequest, UpdateRequest, model, TDB]) Update(ctx context.C
 		return ErrNotFound(dbModel.TableName(), id)
 	}
 
-	model, err := request.ToModel()
+	requestModel, err := request.ToModel()
 	if err != nil {
 		return fmt.Errorf("invalid model: %v", err)
 	}
-	err = s.Repository.Update(ctx, model)
+	err = s.Repository.Update(ctx, requestModel)
 	if err != nil {
 		return fmt.Errorf("errored updating %s with id: %d: %v", dbModel.TableName(), id, err)
 	}

@@ -127,7 +127,7 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*deliveries.Delivery, erro
 
 		driver, err := deliveries.NewDriver(deliveryView.View.Driver.Id, deliveryView.View.Driver.Name)
 		if err != nil {
-			return nil, fmt.Errorf("failed to init driver entity: %w", err)
+			return nil, fmt.Errorf("failed to initialize driver entity: %w", err)
 		}
 
 		delivery, err := deliveries.NewDelivery(deliveryView.View.Id, *order,

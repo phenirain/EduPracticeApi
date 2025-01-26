@@ -54,12 +54,12 @@ func (r *PostgresRepo) GetByLogin(ctx context.Context, login string) (*employees
 
 	role, err := employees.NewRole(employeeView.View.Role.RoleId, employeeView.View.Role.RoleName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to init role entity: %w", err)
+		return nil, fmt.Errorf("failed to initialize role entity: %w", err)
 	}
 	employee, err := employees.NewEmployee(employeeView.View.Id, employeeView.View.FullName,
 		employeeView.View.Login, employeeView.View.Password, *role)
 	if err != nil {
-		return nil, fmt.Errorf("failed to init employee entity: %w", err)
+		return nil, fmt.Errorf("failed to initialize employee entity: %w", err)
 	}
 
 	return employee, nil
@@ -81,12 +81,12 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*employees.Employee, error
 		}
 		role, err := employees.NewRole(employeeView.View.Role.RoleId, employeeView.View.Role.RoleName)
 		if err != nil {
-			return nil, fmt.Errorf("failed to init role entity: %w", err)
+			return nil, fmt.Errorf("failed to initialize role entity: %w", err)
 		}
 		employee, err := employees.NewEmployee(employeeView.View.Id, employeeView.View.FullName,
 			employeeView.View.Login, employeeView.View.Password, *role)
 		if err != nil {
-			return nil, fmt.Errorf("failed to init employee entity: %w", err)
+			return nil, fmt.Errorf("failed to initialize employee entity: %w", err)
 		}
 		result = append(result, employee)
 	}

@@ -1,11 +1,11 @@
-package init
+package initialize
 
 import (
 	domClient "api/internal/domain/clients"
 	domEmployee "api/internal/domain/employees"
 	dbClient "api/internal/infrastructure/clients"
 	dbEmployee "api/internal/infrastructure/employees"
-	"api/internal/infrastructure/init"
+	"api/internal/infrastructure/initialize"
 	"api/internal/service"
 	"api/internal/service/auth"
 	"api/internal/service/clients"
@@ -26,7 +26,7 @@ type Services struct {
 	DeliveryService deliveries.DeliveryService
 }
 
-func NewServices(uow init.UnitOfWork, config auth.TokenConfig) *Services {
+func NewServices(uow initialize.UnitOfWork, config auth.TokenConfig) *Services {
 	return &Services{
 		AuthService:  *auth.NewAuthService(&uow.EmployeeRepository, config),
 		OrderService: *orders.NewOrderService(&uow.OrderRepository, &uow.ProductRepository),

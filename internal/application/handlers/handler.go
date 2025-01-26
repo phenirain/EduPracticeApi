@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"api/internal/service/init"
+	sericeInit "api/internal/service/initialize"
 	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
-	Services *init.Services
+	Services *sericeInit.Services
 }
 
 type HttpResponse struct {
@@ -45,7 +45,7 @@ func NewInternalServerErrorHttpResponse(message string) *HttpResponse {
 	}
 }
 
-func NewHandler(services *init.Services) *Handler {
+func NewHandler(services *sericeInit.Services) *Handler {
 	return &Handler{services}
 }
 

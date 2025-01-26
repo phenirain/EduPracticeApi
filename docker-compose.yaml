@@ -4,34 +4,27 @@ services:
   database:
     image: postgres:15
     env_file:
-      - ../.env
+      - .env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+      - ${POSTGRES_PORT}:5432
     volumes:
       - ./db_data:/var/lib/postgresql/data
     restart: unless-stopped
 
-  migrator:
-    image: agroStorage
-    command: ["./app/api-migrator", "--migrations=./app/migrations"]
-    volumes:
-      - ./migrations:/app/migrations
-    depends_on:
-      - database
-    restart: unless-stopped
-
   api:
-    image: agroStorage
-    command: ["./app/api-server"]
+    build:
+      context: .
+    image: agro_storage
+    command: ["/bin/sh", "-c", "/app/api-migrator --migrations=./app/migrations && /app/api"]
     env_file:
-      - ../.env
+      - .env
     ports:
       - ${APP_PORT}:${APP_PORT}
     depends_on:
-      - migrator
+      - database
     restart: unless-stopped
 

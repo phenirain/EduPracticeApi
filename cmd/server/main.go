@@ -1,12 +1,12 @@
-package server
+package main
 
 import (
 	config "api/config"
 	"api/internal/application"
 	"api/internal/application/handlers"
 	"api/internal/infrastructure"
-	"api/internal/infrastructure/init"
-	serviceInit "api/internal/service/init"
+	infraInit "api/internal/infrastructure/initialize"
+	serviceInit "api/internal/service/initialize"
 	"context"
 	"fmt"
 	"os"
@@ -21,7 +21,7 @@ func main() {
 		cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
 	db := infrastructure.MustInitDB(cs)
 	defer db.Close()
-	r := init.NewUnitOfWork(db)
+	r := infraInit.NewUnitOfWork(db)
 	s := serviceInit.NewServices(*r, cfg.TokenConfig)
 	handler := handlers.NewHandler(s)
 	api := handler.InitRouters()

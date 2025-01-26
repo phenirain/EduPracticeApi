@@ -58,7 +58,7 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*domClient.Client, error) 
 		client, err := domClient.NewClient(clientView.View.Id, clientView.View.CompanyName,
 			clientView.View.ContactPerson, clientView.View.Email, clientView.View.TelephoneNumber)
 		if err != nil {
-			return nil, fmt.Errorf("failed to init client entity: %w", err)
+			return nil, fmt.Errorf("failed to initialize client entity: %w", err)
 		}
 		result = append(result, client)
 	}

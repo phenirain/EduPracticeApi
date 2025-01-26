@@ -1,4 +1,4 @@
-package init
+package initialize
 
 import (
 	"api/internal/infrastructure/clients"
