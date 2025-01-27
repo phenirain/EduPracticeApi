@@ -3,8 +3,8 @@ package deliveries
 type DeliveryStatus string
 
 const (
-	DeliveryStatusScheduled DeliveryStatus = "запланирована"
-	DeliveryStatusOnTheWay  DeliveryStatus = "в пути"
-	DeliveryStatusCanceled  DeliveryStatus = "отменена"
-	DeliveryStatusCompleted DeliveryStatus = "завершена"
+	DeliveryStatusScheduled DeliveryStatus = "Scheduled"
+	DeliveryStatusOnTheWay  DeliveryStatus = "OnTheWay"
+	DeliveryStatusCanceled  DeliveryStatus = "Canceled"
+	DeliveryStatusCompleted DeliveryStatus = "Completed"
 )

@@ -3,9 +3,9 @@ package orders
 type OrderStatus string
 
 const (
-	OrderStatusReserved   OrderStatus = "зарезервирован"
-	OrderStatusPaid       OrderStatus = "оплачен"
-	OrderStatusDelivering OrderStatus = "в доставке"
-	OrderStatusCompleted  OrderStatus = "завершен"
-	OrderStatusCanceled   OrderStatus = "отменен"
+	OrderStatusReserved   OrderStatus = "Reserved"
+	OrderStatusPaid       OrderStatus = "Paid"
+	OrderStatusDelivering OrderStatus = "Delivering"
+	OrderStatusCompleted  OrderStatus = "Completed"
+	OrderStatusCanceled   OrderStatus = "Canceled"
 )
