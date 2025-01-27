@@ -7,7 +7,9 @@ type EmployeeView struct {
 
 func MustNewEmployeeView() *EmployeeView {
 	return &EmployeeView{
-		Query: `SELECT e.id as e_id, e.full_name, e.login as e_login, e.password as e_password, e.role_id,
+		Query: `SELECT e.id as e_id, e.full_name as e_full_name, e.login as e_login,
+e.password as e_password, 
+e.role_id,
 		r.role_name
 		FROM employees e
 		LEFT JOIN roles r ON e.role_id = r.id`,

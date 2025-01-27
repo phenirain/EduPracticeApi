@@ -59,7 +59,7 @@ func (r *PostgresRepo) GetAllCategories(ctx context.Context) ([]*products.Produc
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	for rows.Next() {
 		var category ProductCategory
 		err := rows.StructScan(&category)
@@ -81,7 +81,7 @@ func (r *PostgresRepo) GetById(ctx context.Context, id int32) (*products.Product
 	if err != nil {
 		return nil, err
 	}
-	
+
 	productCategory, err := products.NewProductCategory(productView.View.CategoryId,
 		productView.View.CategoryName)
 	if err != nil {
@@ -104,13 +104,13 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*products.Product, error) 
 		return nil, fmt.Errorf("failed to get products: %v", err)
 	}
 	defer rows.Close()
-	
+
 	for rows.Next() {
 		err := rows.StructScan(&productView.View)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan product row: %v", err)
 		}
-		
+
 		productCategory, err := products.NewProductCategory(productView.View.CategoryId,
 			productView.View.CategoryName)
 		if err != nil {
@@ -124,6 +124,6 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*products.Product, error) 
 		}
 		allProducts = append(allProducts, product)
 	}
-	
+
 	return allProducts, nil
 }
