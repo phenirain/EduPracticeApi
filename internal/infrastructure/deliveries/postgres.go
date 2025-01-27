@@ -95,32 +95,32 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*deliveries.Delivery, erro
 			return nil, fmt.Errorf("failed to scan delivery row: %v", err)
 		}
 
-		productCategory, err := domProduct.NewProductCategory(deliveryView.View.Order.Product.Category.Id,
-			deliveryView.View.Order.Product.Category.Name)
+		productCategory, err := domProduct.NewProductCategory(deliveryView.View.ProductCategoryId,
+			deliveryView.View.ProductCategoryName)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create product category: %v", err)
 		}
-		product, err := domProduct.NewProduct(deliveryView.View.Order.Product.Id,
-			deliveryView.View.Order.Product.Name, deliveryView.View.Order.Product.Article, *productCategory,
-			deliveryView.View.Order.Product.Quantity,
-			deliveryView.View.Order.Product.Price, deliveryView.View.Order.Product.Location,
-			deliveryView.View.Order.Product.ReservedQuantity)
+		product, err := domProduct.NewProduct(deliveryView.View.ProductId,
+			deliveryView.View.ProductName, deliveryView.View.ProductArticle, *productCategory,
+			deliveryView.View.ProductQuantity,
+			deliveryView.View.ProductPrice, deliveryView.View.ProductLocation,
+			deliveryView.View.ProductReservedQuantity)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create product: %v", err)
 		}
 
-		client, err := domClient.NewClient(deliveryView.View.Order.Client.Id,
-			deliveryView.View.Order.Client.CompanyName,
-			deliveryView.View.Order.Client.ContactPerson,
-			deliveryView.View.Order.Client.Email, deliveryView.View.Order.Client.TelephoneNumber)
+		client, err := domClient.NewClient(deliveryView.View.ClientId,
+			deliveryView.View.ClientCompanyName,
+			deliveryView.View.ClientContactPerson,
+			deliveryView.View.ClientEmail, deliveryView.View.ClientTelephoneNumber)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create client: %v", err)
 		}
 
-		order, err := domOrders.NewOrder(deliveryView.View.Order.Id, *product, *client,
-			deliveryView.View.Order.Date,
-			deliveryView.View.Order.Status, deliveryView.View.Order.Quantity,
-			deliveryView.View.Order.TotalPrice)
+		order, err := domOrders.NewOrder(deliveryView.View.OrderId, *product, *client,
+			deliveryView.View.OrderDate,
+			deliveryView.View.OrderStatus, deliveryView.View.OrderQuantity,
+			deliveryView.View.OrderTotalPrice)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create order: %v", err)
 		}

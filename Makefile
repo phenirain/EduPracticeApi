@@ -19,6 +19,9 @@ docker_build:
 compose_up:
 	docker compose -f ./build/docker-compose.yaml up -d
 
+compose_down:
+	docker compose -f ./build/docker-compose.yaml down
+
 compose_up_build:
 	docker compose -f ./build/docker-compose.yaml up --build
 

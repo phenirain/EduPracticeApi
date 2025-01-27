@@ -52,7 +52,7 @@ func (r *PostgresRepo) GetByLogin(ctx context.Context, login string) (*employees
 		return nil, fmt.Errorf("failed to get employee by login: %w", err)
 	}
 
-	role, err := employees.NewRole(employeeView.View.Role.RoleId, employeeView.View.Role.RoleName)
+	role, err := employees.NewRole(employeeView.View.RoleId, employeeView.View.RoleName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize role entity: %w", err)
 	}
@@ -79,7 +79,7 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*employees.Employee, error
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan employee row: %v", err)
 		}
-		role, err := employees.NewRole(employeeView.View.Role.RoleId, employeeView.View.Role.RoleName)
+		role, err := employees.NewRole(employeeView.View.RoleId, employeeView.View.RoleName)
 		if err != nil {
 			return nil, fmt.Errorf("failed to initialize role entity: %w", err)
 		}

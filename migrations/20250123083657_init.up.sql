@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS products
     quantity    INT            NOT NULL,
     price       DECIMAL(12, 2) NOT NULL,
     location VARCHAR(50),
-    reserved_quanity INT NOT NULL
+    reserved_quantity INT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS orders

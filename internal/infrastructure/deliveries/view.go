@@ -2,7 +2,8 @@ package deliveries
 
 import (
 	"api/internal/domain/deliveries"
-	"api/internal/infrastructure/orders"
+	"api/internal/domain/orders"
+	"github.com/shopspring/decimal"
 	"time"
 )
 
@@ -36,8 +37,31 @@ type Driver struct {
 }
 
 type DeliveryViewDb struct {
-	Id        int32 `db:"d_id"`
-	Order     orders.OrderViewDb
+	Id int32 `db:"d_id"`
+	// Order
+	OrderId int32 `db:"o_id"`
+	// Product
+	ProductId               int32           `db:"p_id"`
+	ProductName             string          `db:"product_name"`
+	ProductArticle          string          `db:"p_article"`
+	ProductCategoryId       int32           `db:"category_id"`
+	ProductCategoryName     string          `db:"category_name"`
+	ProductQuantity         int32           `db:"p_quantity"`
+	ProductPrice            decimal.Decimal `db:"p_price"`
+	ProductLocation         string          `db:"p_location"`
+	ProductReservedQuantity int32           `db:"p_reserved_quantity"`
+	// Client
+	ClientId              int32  `db:"c_id"`
+	ClientCompanyName     string `db:"c_company_name"`
+	ClientContactPerson   string `db:"c_contact_person"`
+	ClientEmail           string `db:"c_email"`
+	ClientTelephoneNumber string `db:"c_telephone_number"`
+	// Order
+	OrderDate       time.Time          `db:"o_order_date"`
+	OrderStatus     orders.OrderStatus `db:"o_status"`
+	OrderQuantity   int32              `db:"o_quantity"`
+	OrderTotalPrice decimal.Decimal    `db:"o_total_price"`
+	// Delivery
 	Date      time.Time                 `db:"d_delivery_date"`
 	Transport string                    `db:"d_transport"`
 	Route     string                    `db:"d_route"`

@@ -2,8 +2,6 @@ package orders
 
 import (
 	"api/internal/domain/orders"
-	"api/internal/infrastructure/clients"
-	"api/internal/infrastructure/products"
 	"github.com/shopspring/decimal"
 	"time"
 )
@@ -30,9 +28,24 @@ func MustNewOrderView() *OrderView {
 }
 
 type OrderViewDb struct {
-	Id         int32 `db:"o_id"`
-	Product    products.ProductViewDb
-	Client     clients.ClientViewDb
+	Id int32 `db:"o_id"`
+	// Product
+	ProductId               int32           `db:"p_id"`
+	ProductName             string          `db:"product_name"`
+	ProductArticle          string          `db:"p_article"`
+	ProductCategoryId       int32           `db:"category_id"`
+	ProductCategoryName     string          `db:"category_name"`
+	ProductQuantity         int32           `db:"p_quantity"`
+	ProductPrice            decimal.Decimal `db:"p_price"`
+	ProductLocation         string          `db:"p_location"`
+	ProductReservedQuantity int32           `db:"p_reserved_quantity"`
+	// Client
+	ClientId              int32  `db:"c_id"`
+	ClientCompanyName     string `db:"c_company_name"`
+	ClientContactPerson   string `db:"c_contact_person"`
+	ClientEmail           string `db:"c_email"`
+	ClientTelephoneNumber string `db:"c_telephone_number"`
+	// Order
 	Date       time.Time          `db:"o_order_date"`
 	Status     orders.OrderStatus `db:"o_status"`
 	Quantity   int32              `db:"o_quantity"`

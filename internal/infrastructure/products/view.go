@@ -24,10 +24,11 @@ type ProductCategory struct {
 }
 
 type ProductViewDb struct {
-	Id               int32  `db:"p_id"`
-	Name             string `db:"product_name"`
-	Article          string `db:"p_article"`
-	Category         ProductCategory
+	Id               int32           `db:"p_id"`
+	Name             string          `db:"product_name"`
+	Article          string          `db:"p_article"`
+	CategoryId       int32           `db:"category_id"`
+	CategoryName     string          `db:"category_name"`
 	Quantity         int32           `db:"p_quantity"`
 	Price            decimal.Decimal `db:"p_price"`
 	Location         string          `db:"p_location"`

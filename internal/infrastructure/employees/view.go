@@ -25,5 +25,6 @@ type EmployeeViewDb struct {
 	FullName string `db:"e_full_name"`
 	Login    string `db:"e_login"`
 	Password string `db:"e_password"`
-	Role     Role
+	RoleId   int32  `db:"role_id"`
+	RoleName string `db:"role_name"`
 }

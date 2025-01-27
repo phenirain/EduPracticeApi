@@ -68,22 +68,22 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*domOrder.Order, error) {
 			return nil, fmt.Errorf("failed to scan order row: %v", err)
 		}
 
-		productCategory, err := domProduct.NewProductCategory(orderView.View.Product.Category.Id,
-			orderView.View.Product.Category.Name)
+		productCategory, err := domProduct.NewProductCategory(orderView.View.ProductCategoryId,
+			orderView.View.ProductCategoryName)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create product category: %v", err)
 		}
-		product, err := domProduct.NewProduct(orderView.View.Product.Id, orderView.View.Product.Name,
-			orderView.View.Product.Article, *productCategory, orderView.View.Product.Quantity,
-			orderView.View.Product.Price, orderView.View.Product.Location,
-			orderView.View.Product.ReservedQuantity)
+		product, err := domProduct.NewProduct(orderView.View.ProductId, orderView.View.ProductName,
+			orderView.View.ProductArticle, *productCategory, orderView.View.ProductQuantity,
+			orderView.View.ProductPrice, orderView.View.ProductLocation,
+			orderView.View.ProductReservedQuantity)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create product: %v", err)
 		}
 
-		client, err := domClient.NewClient(orderView.View.Client.Id, orderView.View.Client.CompanyName,
-			orderView.View.Client.ContactPerson,
-			orderView.View.Client.Email, orderView.View.Client.TelephoneNumber)
+		client, err := domClient.NewClient(orderView.View.ClientId, orderView.View.ClientCompanyName,
+			orderView.View.ClientContactPerson,
+			orderView.View.ClientEmail, orderView.View.ClientTelephoneNumber)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create client: %v", err)
 		}
