@@ -3,10 +3,10 @@ LABEL authors="phenirain"
 
 WORKDIR /build
 
-COPY go.mod go.sum ./
+COPY ../go.mod ../go.sum ./
 RUN go mod download
 
-COPY ./ ./
+COPY ../ ./
 
 RUN go build -o /build/api-migrator ./cmd/migrator/main.go
 RUN go build -o /build/api ./cmd/server/main.go

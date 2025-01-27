@@ -17,8 +17,8 @@ import (
 func main() {
 	cfg := config.MustLoadConfig()
 
-	cs := fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=disable", cfg.DBUser,
-		cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
+	cs := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
 	db := infrastructure.MustInitDB(cs)
 	defer db.Close()
 	r := infraInit.NewUnitOfWork(db)

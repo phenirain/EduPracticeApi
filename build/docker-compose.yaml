@@ -4,7 +4,7 @@ services:
   database:
     image: postgres:15
     env_file:
-      - .env
+      - ../.env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -14,17 +14,23 @@ services:
     volumes:
       - ./db_data:/var/lib/postgresql/data
     restart: unless-stopped
+    networks:
+      - app_network
 
   api:
-    build:
-      context: .
     image: agro_storage
-    command: ["/bin/sh", "-c", "/app/api-migrator --migrations=./app/migrations && /app/api"]
+    command: ["/bin/sh", "-c", "/app/api-migrator --migrations=/app/migrations && /app/api"]
     env_file:
-      - .env
+      - ../.env
     ports:
       - ${APP_PORT}:${APP_PORT}
     depends_on:
       - database
     restart: unless-stopped
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
 

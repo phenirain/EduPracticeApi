@@ -39,7 +39,7 @@ func MustLoadConfig() *Config {
 	cfg.DBPassword = os.Getenv("POSTGRES_PASSWORD")
 	cfg.DBName = os.Getenv("POSTGRES_DB")
 	cfg.ApiTimeout = apiTimeout
-	
+
 	secret := []byte(os.Getenv("SECRET"))
 	tokenTTL, err := time.ParseDuration(os.Getenv("TOKEN_TTL"))
 	if err != nil {
@@ -54,10 +54,10 @@ func MustLoadConfig() *Config {
 		TokenTTL:        tokenTTL,
 		RefreshTokenTTL: refreshTokenTTL,
 	}
-	
+
 	if err := env.Parse(&cfg); err != nil {
 		panic(err)
 	}
-	
+
 	return &cfg
 }

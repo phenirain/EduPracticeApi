@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS clients
 CREATE TABLE IF NOT EXISTS product_categories(
     id SERIAL PRIMARY KEY,
     category_name VARCHAR(50) NOT NULL
-)
+);
 
 CREATE TABLE IF NOT EXISTS products
 (
@@ -61,8 +61,8 @@ CREATE TABLE IF NOT EXISTS deliveries
     id        SERIAL PRIMARY KEY,
     order_id  INT REFERENCES orders (ID) NOT NULL,
     driver_id INT REFERENCES drivers (id) NOT NULL,
-    delivery_date TIMESTAMP NOT NULL
+    delivery_date TIMESTAMP NOT NULL,
     transport TEXT NOT NULL,
     route TEXT NOT NULL,
-    status VARCHAR(30) NOT NULL,
+    status VARCHAR(30) NOT NULL
 );

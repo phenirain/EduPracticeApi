@@ -17,7 +17,7 @@ docker_build:
 	docker build --platform linux/arm64 -t agro_storage -f ./build/Dockerfile .
 
 compose_up:
-	docker compose -f build/docker-compose.yaml up
+	docker compose -f ./build/docker-compose.yaml up -d
 
 compose_up_build:
 	docker compose -f ./build/docker-compose.yaml up --build
