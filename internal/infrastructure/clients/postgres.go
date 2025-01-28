@@ -121,11 +121,11 @@ func (r *PostgresRepo) Update(ctx context.Context, model *domClient.Client) erro
 		TelephoneNumber: model.TelephoneNumber,
 	}
 
-	val := reflect.ValueOf(clientDB)
+	val := reflect.ValueOf(*clientDB)
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
 	}
-	typ := reflect.TypeOf(clientDB)
+	typ := reflect.TypeOf(*clientDB)
 	fields := make([]string, 0, typ.NumField()-1)
 	args := make([]interface{}, 0, typ.NumField()-1)
 
