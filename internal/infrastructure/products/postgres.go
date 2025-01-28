@@ -128,6 +128,9 @@ func (r *PostgresRepo) Create(ctx context.Context, model *domProduct.Product) (*
 	}
 
 	val := reflect.ValueOf(productDB)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
 	typ := reflect.TypeOf(productDB)
 	fields := make([]string, 0, typ.NumField()-1)
 	args := make([]interface{}, 0, typ.NumField()-1)
@@ -182,6 +185,9 @@ func (r *PostgresRepo) Update(ctx context.Context, model *domProduct.Product) er
 	}
 
 	val := reflect.ValueOf(productDB)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
 	typ := reflect.TypeOf(productDB)
 	fields := make([]string, 0, typ.NumField()-1)
 	args := make([]interface{}, 0, typ.NumField()-1)

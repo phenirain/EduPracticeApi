@@ -143,6 +143,9 @@ func (r *PostgresRepo) Create(ctx context.Context, model *domDeliveries.Delivery
 	}
 	
 	val := reflect.ValueOf(deliveryDB)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
 	typ := reflect.TypeOf(deliveryDB)
 	fields := make([]string, 0, typ.NumField()-1)
 	args := make([]interface{}, 0, typ.NumField()-1)
@@ -195,6 +198,9 @@ func (r *PostgresRepo) Update(ctx context.Context, model *domDeliveries.Delivery
 	}
 	
 	val := reflect.ValueOf(deliveryDB)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
 	typ := reflect.TypeOf(deliveryDB)
 	fields := make([]string, 0, typ.NumField()-1)
 	args := make([]interface{}, 0, typ.NumField()-1)
