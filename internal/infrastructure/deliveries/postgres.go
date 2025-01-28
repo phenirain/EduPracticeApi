@@ -3,8 +3,8 @@ package deliveries
 import (
 	domClient "api/internal/domain/clients"
 	"api/internal/domain/deliveries"
-	domOrders "api/internal/domain/orders"
 	domDeliveries "api/internal/domain/deliveries"
+	domOrders "api/internal/domain/orders"
 	domProduct "api/internal/domain/products"
 	dbPack "api/internal/infrastructure"
 	"context"
