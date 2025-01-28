@@ -54,7 +54,7 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]**domClient.Client, error)
 		}
 		result = append(result, &client)
 	}
-
+	
 	return result, nil
 }
 
@@ -65,16 +65,16 @@ func (r *PostgresRepo) Create(ctx context.Context, model *domClient.Client) (*do
 		Email:           model.Email,
 		TelephoneNumber: model.TelephoneNumber,
 	}
-
-	val := reflect.ValueOf(*clientDB)
+	
+	val := reflect.ValueOf(clientDB)
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
 	}
-	typ := reflect.TypeOf(*clientDB)
+	typ := reflect.TypeOf(clientDB)
 	fields := make([]string, 0, typ.NumField()-1)
 	args := make([]interface{}, 0, typ.NumField()-1)
 	argsIds := make([]string, 0, typ.NumField()-1)
-
+	
 	for i := 0; i < typ.NumField(); i++ {
 		if typ.Field(i).Name == "Id" {
 			continue
@@ -85,7 +85,7 @@ func (r *PostgresRepo) Create(ctx context.Context, model *domClient.Client) (*do
 	}
 	query := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s)`, clientDB.TableName(), strings.Join(fields, ", "+
 		""), strings.Join(argsIds, ", "))
-
+	
 	var id int32
 	err := r.db.QueryRowxContext(ctx, query, args...).Scan(&id)
 	if err != nil {
@@ -118,7 +118,7 @@ func (r *PostgresRepo) Update(ctx context.Context, model *domClient.Client) erro
 		Email:           model.Email,
 		TelephoneNumber: model.TelephoneNumber,
 	}
-
+	
 	val := reflect.ValueOf(clientDB)
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
@@ -126,7 +126,7 @@ func (r *PostgresRepo) Update(ctx context.Context, model *domClient.Client) erro
 	typ := reflect.TypeOf(clientDB)
 	fields := make([]string, 0, typ.NumField()-1)
 	args := make([]interface{}, 0, typ.NumField()-1)
-
+	
 	for i := 0; i < typ.NumField(); i++ {
 		if typ.Field(i).Name == "Id" {
 			continue
@@ -134,9 +134,9 @@ func (r *PostgresRepo) Update(ctx context.Context, model *domClient.Client) erro
 		fields = append(fields, fmt.Sprintf("%s = $%d", typ.Field(i).Name, len(args)+1))
 		args = append(args, val.Field(i))
 	}
-
+	
 	query := fmt.Sprintf(`UPDATE %s SET %s WHERE id = $%d`, clientDB.TableName(), strings.Join(fields, ", "), clientDB.ID())
-
+	
 	_, err := r.db.ExecContext(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("failed to update %s with id = %d: %v", clientDB.TableName(), clientDB.ID(), err)
