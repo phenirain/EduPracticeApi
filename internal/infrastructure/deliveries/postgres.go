@@ -156,8 +156,9 @@ func (r *PostgresRepo) Create(ctx context.Context, model *domDeliveries.Delivery
 		argsIds = append(argsIds, fmt.Sprintf("$%d", len(args)+1))
 		args = append(args, val.Field(i).Interface())
 	}
-	query := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s)`, deliveryDB.TableName(), strings.Join(fields, ", "+
-		""), strings.Join(argsIds, ", "))
+	query := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s) RETURNING id`, deliveryDB.TableName(), strings.Join(fields,
+		", "+
+			""), strings.Join(argsIds, ", "))
 	
 	var id int32
 	err := r.db.QueryRowxContext(ctx, query, args...).Scan(&id)
