@@ -2,7 +2,6 @@ package clients
 
 import (
 	domClient "api/internal/domain/clients"
-	dbPack "api/internal/infrastructure"
 	"context"
 	"database/sql"
 	"fmt"
@@ -17,14 +16,6 @@ type ClientDB struct {
 	ContactPerson   string `db:"contact_person"`
 	Email           string `db:"email"`
 	TelephoneNumber string `db:"telephone_number"`
-}
-
-func (c *ClientDB) FromModelToDB(model *domClient.Client) {
-	c.Id = model.Id
-	c.CompanyName = model.CompanyName
-	c.ContactPerson = model.ContactPerson
-	c.Email = model.Email
-	c.TelephoneNumber = model.TelephoneNumber
 }
 
 func (c *ClientDB) TableName() string {
@@ -43,8 +34,8 @@ func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
 	return &PostgresRepo{db}
 }
 
-func (r *PostgresRepo) GetAll(ctx context.Context) ([]*domClient.Client, error) {
-	result := make([]*domClient.Client, 0, 25)
+func (r *PostgresRepo) GetAll(ctx context.Context) ([]**domClient.Client, error) {
+	result := make([]**domClient.Client, 0, 25)
 	clientView := MustNewClientView()
 	rows, err := r.db.QueryxContext(ctx, clientView.Query)
 	if err != nil {
@@ -61,26 +52,26 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*domClient.Client, error) 
 		if err != nil {
 			return nil, fmt.Errorf("failed to initialize client entity: %w", err)
 		}
-		result = append(result, client)
+		result = append(result, &client)
 	}
-	
+
 	return result, nil
 }
 
-func (r *PostgresRepo) Create(ctx context.Context, model domClient.Client) (domClient.Client, error) {
+func (r *PostgresRepo) Create(ctx context.Context, model *domClient.Client) (*domClient.Client, error) {
 	clientDB := &ClientDB{
 		CompanyName:     model.CompanyName,
 		ContactPerson:   model.ContactPerson,
 		Email:           model.Email,
 		TelephoneNumber: model.TelephoneNumber,
 	}
-	
+
 	val := reflect.ValueOf(clientDB)
 	typ := reflect.TypeOf(clientDB)
 	fields := make([]string, 0, typ.NumField()-1)
 	args := make([]interface{}, 0, typ.NumField()-1)
 	argsIds := make([]string, 0, typ.NumField()-1)
-	
+
 	for i := 0; i < typ.NumField(); i++ {
 		if typ.Field(i).Name == "Id" {
 			continue
@@ -91,7 +82,7 @@ func (r *PostgresRepo) Create(ctx context.Context, model domClient.Client) (domC
 	}
 	query := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s)`, clientDB.TableName(), strings.Join(fields, ", "+
 		""), strings.Join(argsIds, ", "))
-	
+
 	var id int32
 	err := r.db.QueryRowxContext(ctx, query, args...).Scan(&id)
 	if err != nil {
@@ -116,7 +107,7 @@ func (r *PostgresRepo) ExistsById(ctx context.Context, id int32) (bool, error) {
 	return true, nil
 }
 
-func (r *PostgresRepo) Update(ctx context.Context, model domClient.Client) error {
+func (r *PostgresRepo) Update(ctx context.Context, model *domClient.Client) error {
 	clientDB := &ClientDB{
 		Id:              model.Id,
 		CompanyName:     model.CompanyName,
@@ -124,12 +115,12 @@ func (r *PostgresRepo) Update(ctx context.Context, model domClient.Client) error
 		Email:           model.Email,
 		TelephoneNumber: model.TelephoneNumber,
 	}
-	
+
 	val := reflect.ValueOf(clientDB)
 	typ := reflect.TypeOf(clientDB)
 	fields := make([]string, 0, typ.NumField()-1)
 	args := make([]interface{}, 0, typ.NumField()-1)
-	
+
 	for i := 0; i < typ.NumField(); i++ {
 		if typ.Field(i).Name == "Id" {
 			continue
@@ -137,9 +128,9 @@ func (r *PostgresRepo) Update(ctx context.Context, model domClient.Client) error
 		fields = append(fields, fmt.Sprintf("%s = $%d", typ.Field(i).Name, len(args)+1))
 		args = append(args, val.Field(i))
 	}
-	
+
 	query := fmt.Sprintf(`UPDATE %s SET %s WHERE id = $%d`, clientDB.TableName(), strings.Join(fields, ", "), clientDB.ID())
-	
+
 	_, err := r.db.ExecContext(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("failed to update %s with id = %d: %v", clientDB.TableName(), clientDB.ID(), err)

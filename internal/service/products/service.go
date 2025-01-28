@@ -19,7 +19,7 @@ type ProductService struct {
 }
 
 func NewProductService(
-	productRepo service.Repository[*productDB.ProductDB, *products.Product],
+	productRepo service.Repository[*products.Product],
 	additionalRepo AdditionalRepository,
 ) *ProductService {
 	productService := service.NewService[*CreateProductRequest, *UpdateProductRequest, *products.Product,

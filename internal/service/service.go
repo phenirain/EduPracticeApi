@@ -1,7 +1,6 @@
 package service
 
 import (
-	"api/internal/infrastructure"
 	"context"
 	"errors"
 	"fmt"
@@ -11,43 +10,47 @@ func ErrNotFound(tableName string, id int32) error {
 	return errors.New(fmt.Sprintf("Object of %s with id: %d not found", tableName, id))
 }
 
-type Repository[TDB infrastructure.DbModel[T], T infrastructure.Model] interface {
+type DBModel interface {
+	ID() int32
+	TableName() string
+}
+
+type Repository[T interface{}] interface {
 	Create(ctx context.Context, model T) (T, error)
 	ExistsById(ctx context.Context, id int32) (bool, error)
-	GetAll(ctx context.Context) ([]T, error)
+	GetAll(ctx context.Context) ([]*T, error)
 	Update(ctx context.Context, model T) error
 	Delete(ctx context.Context, id int32) error
 }
 
-type ModelRequest[T infrastructure.Model] interface {
+type ModelRequest[T interface{}] interface {
 	ToModel() (T, error)
 }
 
-type Service[CreateRequest ModelRequest[model], UpdateRequest ModelRequest[model], model infrastructure.Model,
-	TDB infrastructure.DbModel[model]] struct {
-	Repository Repository[TDB, model]
+type Service[CreateRequest ModelRequest[model], UpdateRequest ModelRequest[model], model interface{}, TDB DBModel] struct {
+	Repository Repository[model]
 }
 
-func NewService[CreateRequest ModelRequest[model], UpdateRequest ModelRequest[model],
-	model infrastructure.Model, TDB infrastructure.DbModel[model]](repo Repository[TDB, model]) *Service[CreateRequest, UpdateRequest,
-	model, TDB] {
+func NewService[CreateRequest ModelRequest[model], UpdateRequest ModelRequest[model], model interface{}, TDB DBModel](
+	repo Repository[model]) *Service[CreateRequest, UpdateRequest, model, TDB] {
 	return &Service[CreateRequest, UpdateRequest, model, TDB]{Repository: repo}
 }
 
-func (s *Service[CreateRequest, UpdateRequest, model, TDB]) Create(ctx context.Context, request CreateRequest) (*model, error) {
+func (s *Service[CreateRequest, UpdateRequest, model, TDB]) Create(ctx context.Context,
+	request CreateRequest) (*model, error) {
 	requestModel, err := request.ToModel()
 	if err != nil {
 		return nil, fmt.Errorf("invalid model: %v", err)
 	}
-	item, err := s.Repository.Create(ctx, requestModel)
 	var dbModel TDB
+	item, err := s.Repository.Create(ctx, requestModel)
 	if err != nil {
 		return nil, fmt.Errorf("errored creating new item of %s: %v", dbModel.TableName(), err)
 	}
 	return &item, nil
 }
 
-func (s *Service[CreateRequest, UpdateRequest, model, TDB]) GetAll(ctx context.Context) ([]model, error) {
+func (s *Service[CreateRequest, UpdateRequest, model, TDB]) GetAll(ctx context.Context) ([]*model, error) {
 	allItems, err := s.Repository.GetAll(ctx)
 	var dbModel TDB
 	if err != nil {

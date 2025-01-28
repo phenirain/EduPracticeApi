@@ -29,7 +29,7 @@ type OrderService struct {
 }
 
 func NewOrderService(
-	orderRepo service.Repository[*orders.OrderDB, *domOrder.Order],
+	orderRepo service.Repository[*domOrder.Order],
 	productRepo ProductRepository,
 ) *OrderService {
 	orderService := service.NewService[*CreateOrderRequest, *UpdateOrderRequest, *domOrder.Order,

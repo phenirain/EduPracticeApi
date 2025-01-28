@@ -1,7 +1,7 @@
 package clients
 
 import (
-	"api/internal/domain/clients"
+	domClient "api/internal/domain/clients"
 	"fmt"
 )
 
@@ -12,8 +12,8 @@ type CreateClientRequest struct {
 	TelephoneNumber string `json:"telephone_number"`
 }
 
-func (c *CreateClientRequest) ToModel() (*clients.Client, error) {
-	client, err := clients.CreateClient(c.CompanyName, c.ContactPerson, c.Email, c.TelephoneNumber)
+func (c *CreateClientRequest) ToModel() (*domClient.Client, error) {
+	client, err := domClient.CreateClient(c.CompanyName, c.ContactPerson, c.Email, c.TelephoneNumber)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create client: %v", err)
 	}
@@ -25,8 +25,8 @@ type UpdateClientRequest struct {
 	*CreateClientRequest
 }
 
-func (uor *UpdateClientRequest) ToModel() (*clients.Client, error) {
-	client, err := clients.NewClient(uor.Id, uor.CompanyName, uor.ContactPerson, uor.Email, uor.TelephoneNumber)
+func (uor *UpdateClientRequest) ToModel() (*domClient.Client, error) {
+	client, err := domClient.NewClient(uor.Id, uor.CompanyName, uor.ContactPerson, uor.Email, uor.TelephoneNumber)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create client: %v", err)
 	}

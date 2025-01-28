@@ -1,10 +1,8 @@
 package products
 
 import (
-	domOrder "api/internal/domain/orders"
 	"api/internal/domain/products"
 	domProduct "api/internal/domain/products"
-	dbPack "api/internal/infrastructure"
 	"context"
 	"database/sql"
 	"fmt"
@@ -25,17 +23,6 @@ type ProductDB struct {
 	ReservedQuantity int32           `db:"reserved_quantity"`
 }
 
-func (p *ProductDB) FromModelToDB(product *products.Product) {
-	p.Id = product.Id
-	p.Name = product.Name
-	p.Article = product.Article
-	p.Category = product.Category.Id
-	p.Quantity = product.Quantity
-	p.Price = product.Price
-	p.Location = product.Location
-	p.ReservedQuantity = product.ReservedQuantity
-}
-
 func (p *ProductDB) TableName() string {
 	return "products"
 }
@@ -45,15 +32,12 @@ func (p *ProductDB) ID() int32 {
 }
 
 type PostgresRepo struct {
-	*dbPack.Repository[*ProductDB, *products.Product]
 	db *sqlx.DB
 }
 
 func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
-	baseRepo := dbPack.NewRepository[*ProductDB, *products.Product](db)
 	return &PostgresRepo{
-		Repository: baseRepo,
-		db:         db,
+		db: db,
 	}
 }
 
@@ -101,8 +85,8 @@ func (r *PostgresRepo) GetById(ctx context.Context, id int32) (*products.Product
 	return product, nil
 }
 
-func (r *PostgresRepo) GetAll(ctx context.Context) ([]*products.Product, error) {
-	var allProducts []*products.Product
+func (r *PostgresRepo) GetAll(ctx context.Context) ([]**products.Product, error) {
+	var allProducts []**products.Product
 	productView := MustNewProductView()
 	rows, err := r.db.QueryxContext(ctx, productView.Query)
 	if err != nil {
@@ -127,16 +111,15 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*products.Product, error) 
 		if err != nil {
 			return nil, fmt.Errorf("failed to create product: %v", err)
 		}
-		allProducts = append(allProducts, product)
+		allProducts = append(allProducts, &product)
 	}
 
 	return allProducts, nil
 }
-func (r *PostgresRepo) Create(ctx context.Context, model domProduct.Product) (domProduct.Product, error) {
+func (r *PostgresRepo) Create(ctx context.Context, model *domProduct.Product) (*domProduct.Product, error) {
 	productDB := &ProductDB{
-		Name:    model.Name,
-		Article: model.Article,
-		// TODO: не уверен что именно так это должно выглядеть, но если там требуется int32
+		Name:             model.Name,
+		Article:          model.Article,
 		Category:         model.Category.Id,
 		Quantity:         model.Quantity,
 		Price:            model.Price,
@@ -186,12 +169,11 @@ func (r *PostgresRepo) ExistsById(ctx context.Context, id int32) (bool, error) {
 	return true, nil
 }
 
-func (r *PostgresRepo) Update(ctx context.Context, model domProduct.Product) error {
+func (r *PostgresRepo) Update(ctx context.Context, model *domProduct.Product) error {
 	productDB := &ProductDB{
-		Id:      model.Id,
-		Name:    model.Name,
-		Article: model.Article,
-		// TODO: не уверен что именно так это должно выглядеть, но если там требуется int32
+		Id:               model.Id,
+		Name:             model.Name,
+		Article:          model.Article,
 		Category:         model.Category.Id,
 		Quantity:         model.Quantity,
 		Price:            model.Price,

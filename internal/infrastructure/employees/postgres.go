@@ -1,10 +1,8 @@
 package employees
 
 import (
-	domClient "api/internal/domain/clients"
 	"api/internal/domain/employees"
 	domEmployee "api/internal/domain/employees"
-	dbPack "api/internal/infrastructure"
 	"context"
 	"database/sql"
 	"fmt"
@@ -21,14 +19,6 @@ type EmployeeDB struct {
 	RoleId   int32  `id:"role_id"`
 }
 
-func (e *EmployeeDB) FromModelToDB(employee *employees.Employee) {
-	e.Id = employee.Id
-	e.FullName = employee.FullName
-	e.Login = employee.Login
-	e.Password = employee.Password
-	e.RoleId = employee.Role.Id
-}
-
 func (e *EmployeeDB) TableName() string {
 	return "employees"
 }
@@ -38,15 +28,12 @@ func (e *EmployeeDB) ID() int32 {
 }
 
 type PostgresRepo struct {
-	*dbPack.Repository[*EmployeeDB, *employees.Employee]
 	db *sqlx.DB
 }
 
 func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
-	baseRepo := dbPack.NewRepository[*EmployeeDB, *employees.Employee](db)
 	return &PostgresRepo{
-		Repository: baseRepo,
-		db:         db,
+		db: db,
 	}
 }
 
@@ -70,14 +57,14 @@ func (r *PostgresRepo) GetByLogin(ctx context.Context, login string) (*employees
 	return employee, nil
 }
 
-func (r *PostgresRepo) GetAll(ctx context.Context) ([]*employees.Employee, error) {
+func (r *PostgresRepo) GetAll(ctx context.Context) ([]**employees.Employee, error) {
 	employeeView := MustNewEmployeeView()
 	rows, err := r.db.QueryxContext(ctx, employeeView.Query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get employees: %v", err)
 	}
 	defer rows.Close()
-	result := make([]*employees.Employee, 0, 25)
+	result := make([]**employees.Employee, 0, 25)
 
 	for rows.Next() {
 		err = rows.StructScan(&employeeView.View)
@@ -93,7 +80,7 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*employees.Employee, error
 		if err != nil {
 			return nil, fmt.Errorf("failed to initialize employee entity: %w", err)
 		}
-		result = append(result, employee)
+		result = append(result, &employee)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -103,13 +90,13 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*employees.Employee, error
 	return result, nil
 }
 
-func (r *PostgresRepo) Create(ctx context.Context, model domEmployee.Employee) (domEmployee.Employee, error) {
+func (r *PostgresRepo) Create(ctx context.Context, model *domEmployee.Employee) (*domEmployee.Employee,
+	error) {
 	employeeDB := &EmployeeDB{
 		FullName: model.FullName,
 		Login:    model.Login,
 		Password: model.Password,
-		// TODO: не уверен что именно так это должно выглядеть, но если там требуется int32
-		RoleId: model.Role.Id,
+		RoleId:   model.Role.Id,
 	}
 
 	val := reflect.ValueOf(employeeDB)
@@ -153,13 +140,13 @@ func (r *PostgresRepo) ExistsById(ctx context.Context, id int32) (bool, error) {
 	return true, nil
 }
 
-func (r *PostgresRepo) Update(ctx context.Context, model domEmployee.Employee) error {
+func (r *PostgresRepo) Update(ctx context.Context, model *domEmployee.Employee) error {
 	employeeDB := &EmployeeDB{
+		Id:       model.Id,
 		FullName: model.FullName,
 		Login:    model.Login,
 		Password: model.Password,
-		// TODO: не уверен что именно так это должно выглядеть, но если там требуется int32
-		RoleId: model.Role.Id,
+		RoleId:   model.Role.Id,
 	}
 
 	val := reflect.ValueOf(employeeDB)

@@ -6,7 +6,6 @@ import (
 	domDeliveries "api/internal/domain/deliveries"
 	domOrders "api/internal/domain/orders"
 	domProduct "api/internal/domain/products"
-	dbPack "api/internal/infrastructure"
 	"context"
 	"database/sql"
 	"fmt"
@@ -31,16 +30,6 @@ type DeliveryDB struct {
 	DriverId  int32                     `db:"driver_id"`
 }
 
-func (d *DeliveryDB) FromModelToDB(delivery *deliveries.Delivery) {
-	d.Id = delivery.Id
-	d.Date = delivery.Date
-	d.OrderId = delivery.Order.Id
-	d.Transport = delivery.Transport
-	d.Route = delivery.Route
-	d.Status = delivery.Status
-	d.DriverId = delivery.Driver.Id
-}
-
 func (d *DeliveryDB) TableName() string {
 	return "deliveries"
 }
@@ -50,15 +39,12 @@ func (d *DeliveryDB) ID() int32 {
 }
 
 type PostgresRepo struct {
-	*dbPack.Repository[*DeliveryDB, *deliveries.Delivery]
 	db *sqlx.DB
 }
 
 func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
-	baseRepo := dbPack.NewRepository[*DeliveryDB, *deliveries.Delivery](db)
 	return &PostgresRepo{
-		Repository: baseRepo,
-		db:         db,
+		db: db,
 	}
 }
 
@@ -86,8 +72,8 @@ func (r *PostgresRepo) GetAllDrivers(ctx context.Context) ([]*deliveries.Driver,
 	return drivers, nil
 }
 
-func (r *PostgresRepo) GetAll(ctx context.Context) ([]*deliveries.Delivery, error) {
-	var allDeliveries []*deliveries.Delivery
+func (r *PostgresRepo) GetAll(ctx context.Context) ([]**deliveries.Delivery, error) {
+	var allDeliveries []**deliveries.Delivery
 	deliveryView := MustNewDeliveryView()
 	rows, err := r.db.QueryxContext(ctx, deliveryView.Query)
 	if err != nil {
@@ -141,21 +127,19 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*deliveries.Delivery, erro
 			return nil, fmt.Errorf("failed to create delivery: %v", err)
 		}
 
-		allDeliveries = append(allDeliveries, delivery)
+		allDeliveries = append(allDeliveries, &delivery)
 	}
 	return allDeliveries, nil
 }
 
-func (r *PostgresRepo) Create(ctx context.Context, model domDeliveries.Delivery) (domDeliveries.Delivery, error) {
+func (r *PostgresRepo) Create(ctx context.Context, model *domDeliveries.Delivery) (*domDeliveries.Delivery, error) {
 	deliveryDB := &DeliveryDB{
-		// TODO: не уверен что именно так это должно выглядеть, но если там требуется int32
 		OrderId:   model.Order.Id,
 		Date:      model.Date,
 		Transport: model.Transport,
 		Route:     model.Route,
 		Status:    model.Status,
-		// TODO: не уверен что именно так это должно выглядеть, но если там требуется int32
-		DriverId: model.Driver.Id,
+		DriverId:  model.Driver.Id,
 	}
 
 	val := reflect.ValueOf(deliveryDB)
@@ -199,17 +183,15 @@ func (r *PostgresRepo) ExistsById(ctx context.Context, id int32) (bool, error) {
 	return true, nil
 }
 
-func (r *PostgresRepo) Update(ctx context.Context, model domDeliveries.Delivery) error {
+func (r *PostgresRepo) Update(ctx context.Context, model *domDeliveries.Delivery) error {
 	deliveryDB := &DeliveryDB{
-		Id: model.Id,
-		// TODO: не уверен что именно так это должно выглядеть, но если там требуется int32
+		Id:        model.Id,
 		OrderId:   model.Order.Id,
 		Date:      model.Date,
 		Transport: model.Transport,
 		Route:     model.Route,
 		Status:    model.Status,
-		// TODO: не уверен что именно так это должно выглядеть, но если там требуется int32
-		DriverId: model.Driver.Id,
+		DriverId:  model.Driver.Id,
 	}
 
 	val := reflect.ValueOf(deliveryDB)

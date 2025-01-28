@@ -2,9 +2,8 @@ package orders
 
 import (
 	domClient "api/internal/domain/clients"
-	domOrder "api/internal/domain/orders"
+	orders "api/internal/domain/orders"
 	domProduct "api/internal/domain/products"
-	dbPack "api/internal/infrastructure"
 	"context"
 	"database/sql"
 	"fmt"
@@ -16,23 +15,13 @@ import (
 )
 
 type OrderDB struct {
-	Id         int32                `db:"id"`
-	ProductId  int32                `db:"product_id"`
-	ClientId   int32                `db:"client_id"`
-	Date       time.Time            `db:"order_date"`
-	Status     domOrder.OrderStatus `db:"status"`
-	Quantity   int32                `db:"quantity"`
-	TotalPrice decimal.Decimal      `db:"total_price"`
-}
-
-func (o *OrderDB) FromModelToDB(order *domOrder.Order) {
-	o.Id = order.Id
-	o.ProductId = order.Product.Id
-	o.ClientId = order.Client.Id
-	o.Date = order.Date
-	o.Status = order.Status
-	o.Quantity = order.Quantity
-	o.TotalPrice = order.TotalPrice
+	Id         int32              `db:"id"`
+	ProductId  int32              `db:"product_id"`
+	ClientId   int32              `db:"client_id"`
+	Date       time.Time          `db:"order_date"`
+	Status     orders.OrderStatus `db:"status"`
+	Quantity   int32              `db:"quantity"`
+	TotalPrice decimal.Decimal    `db:"total_price"`
 }
 
 func (o *OrderDB) TableName() string {
@@ -44,20 +33,17 @@ func (o *OrderDB) ID() int32 {
 }
 
 type PostgresRepo struct {
-	*dbPack.Repository[*OrderDB, *domOrder.Order]
 	db *sqlx.DB
 }
 
 func NewPostgresRepo(db *sqlx.DB) *PostgresRepo {
-	baseRepo := dbPack.NewRepository[*OrderDB, *domOrder.Order](db)
 	return &PostgresRepo{
-		Repository: baseRepo,
-		db:         db,
+		db: db,
 	}
 }
 
-func (r *PostgresRepo) GetAll(ctx context.Context) ([]*domOrder.Order, error) {
-	var allOrders []*domOrder.Order
+func (r *PostgresRepo) GetAll(ctx context.Context) ([]**orders.Order, error) {
+	var allOrders []**orders.Order
 	orderView := MustNewOrderView()
 	rows, err := r.db.QueryxContext(ctx, orderView.Query)
 	if err != nil {
@@ -91,19 +77,19 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*domOrder.Order, error) {
 			return nil, fmt.Errorf("failed to create client: %v", err)
 		}
 
-		order, err := domOrder.NewOrder(orderView.View.Id, *product, *client, orderView.View.Date,
+		order, err := orders.NewOrder(orderView.View.Id, *product, *client, orderView.View.Date,
 			orderView.View.Status, orderView.View.Quantity, orderView.View.TotalPrice)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create order: %v", err)
 		}
 
-		allOrders = append(allOrders, order)
+		allOrders = append(allOrders, &order)
 	}
 
 	return allOrders, nil
 }
 
-func (r *PostgresRepo) Create(ctx context.Context, model domOrder.Order) (domOrder.Order, error) {
+func (r *PostgresRepo) Create(ctx context.Context, model *orders.Order) (*orders.Order, error) {
 	orderDB := &OrderDB{
 		Date:       model.Date,
 		Status:     model.Status,
@@ -153,7 +139,7 @@ func (r *PostgresRepo) ExistsById(ctx context.Context, id int32) (bool, error) {
 	return true, nil
 }
 
-func (r *PostgresRepo) Update(ctx context.Context, model domOrder.Order) error {
+func (r *PostgresRepo) Update(ctx context.Context, model *orders.Order) error {
 	orderDB := &OrderDB{
 		Id:         model.Id,
 		Date:       model.Date,

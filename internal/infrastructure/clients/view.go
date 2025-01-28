@@ -15,7 +15,8 @@ type ClientViewDb struct {
 
 func MustNewClientView() *ClientView {
 	return &ClientView{
-		Query: `SELECT id as c_id, company_name, contact_person, email, telephone_number FROM clients`,
-		View:  ClientViewDb{},
+		Query: `SELECT id as c_id, company_name as c_company_name, contact_person as c_contact_person,
+		email as c_email, telephone_number as c_telephone_number FROM clients`,
+		View: ClientViewDb{},
 	}
 }

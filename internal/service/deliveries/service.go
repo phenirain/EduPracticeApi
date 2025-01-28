@@ -19,7 +19,7 @@ type DeliveryService struct {
 }
 
 func NewDeliveryService(
-	deliveryRepo service.Repository[*deliveryDB.DeliveryDB, *deliveries.Delivery],
+	deliveryRepo service.Repository[*deliveries.Delivery],
 	additionalRepo AdditionalRepository,
 ) *DeliveryService {
 	deliveryService := service.NewService[*CreateDeliveryRequest, *UpdateDeliveryRequest, *deliveries.Delivery,
