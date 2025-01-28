@@ -127,11 +127,8 @@ func (r *PostgresRepo) Create(ctx context.Context, model *domProduct.Product) (*
 		ReservedQuantity: model.ReservedQuantity,
 	}
 
-	val := reflect.ValueOf(productDB)
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
-	typ := reflect.TypeOf(productDB)
+	val := reflect.ValueOf(*productDB)
+	typ := reflect.TypeOf(*productDB)
 	fields := make([]string, 0, typ.NumField()-1)
 	args := make([]interface{}, 0, typ.NumField()-1)
 	argsIds := make([]string, 0, typ.NumField()-1)
@@ -142,7 +139,7 @@ func (r *PostgresRepo) Create(ctx context.Context, model *domProduct.Product) (*
 		}
 		fields = append(fields, typ.Field(i).Name)
 		argsIds = append(argsIds, fmt.Sprintf("$%d", len(args)+1))
-		args = append(args, val.Field(i))
+		args = append(args, val.Field(i).Interface())
 	}
 	query := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s)`, productDB.TableName(), strings.Join(fields, ", "+
 		""), strings.Join(argsIds, ", "))
@@ -184,11 +181,8 @@ func (r *PostgresRepo) Update(ctx context.Context, model *domProduct.Product) er
 		ReservedQuantity: model.ReservedQuantity,
 	}
 
-	val := reflect.ValueOf(productDB)
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
-	typ := reflect.TypeOf(productDB)
+	val := reflect.ValueOf(*productDB)
+	typ := reflect.TypeOf(*productDB)
 	fields := make([]string, 0, typ.NumField()-1)
 	args := make([]interface{}, 0, typ.NumField()-1)
 
@@ -197,7 +191,7 @@ func (r *PostgresRepo) Update(ctx context.Context, model *domProduct.Product) er
 			continue
 		}
 		fields = append(fields, fmt.Sprintf("%s = $%d", typ.Field(i).Name, len(args)+1))
-		args = append(args, val.Field(i))
+		args = append(args, val.Field(i).Interface())
 	}
 
 	query := fmt.Sprintf(`UPDATE %s SET %s WHERE id = $%d`, productDB.TableName(), strings.Join(fields, ", "), productDB.ID())

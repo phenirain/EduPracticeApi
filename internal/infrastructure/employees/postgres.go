@@ -99,11 +99,8 @@ func (r *PostgresRepo) Create(ctx context.Context, model *domEmployee.Employee) 
 		RoleId:   model.Role.Id,
 	}
 	
-	val := reflect.ValueOf(employeeDB)
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
-	typ := reflect.TypeOf(employeeDB)
+	val := reflect.ValueOf(*employeeDB)
+	typ := reflect.TypeOf(*employeeDB)
 	fields := make([]string, 0, typ.NumField()-1)
 	args := make([]interface{}, 0, typ.NumField()-1)
 	argsIds := make([]string, 0, typ.NumField()-1)
@@ -114,7 +111,7 @@ func (r *PostgresRepo) Create(ctx context.Context, model *domEmployee.Employee) 
 		}
 		fields = append(fields, typ.Field(i).Name)
 		argsIds = append(argsIds, fmt.Sprintf("$%d", len(args)+1))
-		args = append(args, val.Field(i))
+		args = append(args, val.Field(i).Interface())
 	}
 	query := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s)`, employeeDB.TableName(), strings.Join(fields, ", "+
 		""), strings.Join(argsIds, ", "))
@@ -152,11 +149,8 @@ func (r *PostgresRepo) Update(ctx context.Context, model *domEmployee.Employee) 
 		RoleId:   model.Role.Id,
 	}
 	
-	val := reflect.ValueOf(employeeDB)
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
-	typ := reflect.TypeOf(employeeDB)
+	val := reflect.ValueOf(*employeeDB)
+	typ := reflect.TypeOf(*employeeDB)
 	fields := make([]string, 0, typ.NumField()-1)
 	args := make([]interface{}, 0, typ.NumField()-1)
 	
@@ -165,7 +159,7 @@ func (r *PostgresRepo) Update(ctx context.Context, model *domEmployee.Employee) 
 			continue
 		}
 		fields = append(fields, fmt.Sprintf("%s = $%d", typ.Field(i).Name, len(args)+1))
-		args = append(args, val.Field(i))
+		args = append(args, val.Field(i).Interface())
 	}
 	
 	query := fmt.Sprintf(`UPDATE %s SET %s WHERE id = $%d`, employeeDB.TableName(), strings.Join(fields, ", "), employeeDB.ID())

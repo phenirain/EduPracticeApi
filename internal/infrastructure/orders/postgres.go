@@ -50,13 +50,13 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]**orders.Order, error) {
 		return nil, fmt.Errorf("failed to get orders: %v", err)
 	}
 	defer rows.Close()
-
+	
 	for rows.Next() {
 		err := rows.StructScan(&orderView.View)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan order row: %v", err)
 		}
-
+		
 		productCategory, err := domProduct.NewProductCategory(orderView.View.ProductCategoryId,
 			orderView.View.ProductCategoryName)
 		if err != nil {
@@ -69,23 +69,23 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]**orders.Order, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to create product: %v", err)
 		}
-
+		
 		client, err := domClient.NewClient(orderView.View.ClientId, orderView.View.ClientCompanyName,
 			orderView.View.ClientContactPerson,
 			orderView.View.ClientEmail, orderView.View.ClientTelephoneNumber)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create client: %v", err)
 		}
-
+		
 		order, err := orders.NewOrder(orderView.View.Id, *product, *client, orderView.View.Date,
 			orderView.View.Status, orderView.View.Quantity, orderView.View.TotalPrice)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create order: %v", err)
 		}
-
+		
 		allOrders = append(allOrders, &order)
 	}
-
+	
 	return allOrders, nil
 }
 
@@ -96,27 +96,24 @@ func (r *PostgresRepo) Create(ctx context.Context, model *orders.Order) (*orders
 		Quantity:   model.Quantity,
 		TotalPrice: model.TotalPrice,
 	}
-
-	val := reflect.ValueOf(orderDB)
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
-	typ := reflect.TypeOf(orderDB)
+	
+	val := reflect.ValueOf(*orderDB)
+	typ := reflect.TypeOf(*orderDB)
 	fields := make([]string, 0, typ.NumField()-1)
 	args := make([]interface{}, 0, typ.NumField()-1)
 	argsIds := make([]string, 0, typ.NumField()-1)
-
+	
 	for i := 0; i < typ.NumField(); i++ {
 		if typ.Field(i).Name == "Id" {
 			continue
 		}
 		fields = append(fields, typ.Field(i).Name)
 		argsIds = append(argsIds, fmt.Sprintf("$%d", len(args)+1))
-		args = append(args, val.Field(i))
+		args = append(args, val.Field(i).Interface())
 	}
 	query := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s)`, orderDB.TableName(), strings.Join(fields, ", "+
 		""), strings.Join(argsIds, ", "))
-
+	
 	var id int32
 	err := r.db.QueryRowxContext(ctx, query, args...).Scan(&id)
 	if err != nil {
@@ -150,25 +147,22 @@ func (r *PostgresRepo) Update(ctx context.Context, model *orders.Order) error {
 		Quantity:   model.Quantity,
 		TotalPrice: model.TotalPrice,
 	}
-
-	val := reflect.ValueOf(orderDB)
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
-	typ := reflect.TypeOf(orderDB)
+	
+	val := reflect.ValueOf(*orderDB)
+	typ := reflect.TypeOf(*orderDB)
 	fields := make([]string, 0, typ.NumField()-1)
 	args := make([]interface{}, 0, typ.NumField()-1)
-
+	
 	for i := 0; i < typ.NumField(); i++ {
 		if typ.Field(i).Name == "Id" {
 			continue
 		}
 		fields = append(fields, fmt.Sprintf("%s = $%d", typ.Field(i).Name, len(args)+1))
-		args = append(args, val.Field(i))
+		args = append(args, val.Field(i).Interface())
 	}
-
+	
 	query := fmt.Sprintf(`UPDATE %s SET %s WHERE id = $%d`, orderDB.TableName(), strings.Join(fields, ", "), orderDB.ID())
-
+	
 	_, err := r.db.ExecContext(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("failed to update %s with id = %d: %v", orderDB.TableName(), orderDB.ID(), err)
