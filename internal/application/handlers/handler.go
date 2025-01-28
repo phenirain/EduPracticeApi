@@ -58,7 +58,7 @@ func (h *Handler) InitRouters() *gin.Engine {
 		{
 			client.POST("", h.CreateClient)
 			client.GET("", h.GetAllClients)
-			client.PUT("/:id", h.CreateClient)
+			client.PUT("/:id", h.UpdateClient)
 			client.DELETE("/:id", h.DeleteClient)
 		}
 		employee := api.Group("/employees")
