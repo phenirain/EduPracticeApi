@@ -56,7 +56,7 @@ func (r *PostgresRepo) GetAllDrivers(ctx context.Context) ([]*deliveries.Driver,
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	for rows.Next() {
 		var driverDB Driver
 		err := rows.StructScan(&driverDB)
@@ -84,7 +84,7 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]**deliveries.Delivery, err
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan delivery row: %v", err)
 		}
-		
+
 		productCategory, err := domProduct.NewProductCategory(deliveryView.View.ProductCategoryId,
 			deliveryView.View.ProductCategoryName)
 		if err != nil {
@@ -98,7 +98,7 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]**deliveries.Delivery, err
 		if err != nil {
 			return nil, fmt.Errorf("failed to create product: %v", err)
 		}
-		
+
 		client, err := domClient.NewClient(deliveryView.View.ClientId,
 			deliveryView.View.ClientCompanyName,
 			deliveryView.View.ClientContactPerson,
@@ -106,7 +106,7 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]**deliveries.Delivery, err
 		if err != nil {
 			return nil, fmt.Errorf("failed to create client: %v", err)
 		}
-		
+
 		order, err := domOrders.NewOrder(deliveryView.View.OrderId, *product, *client,
 			deliveryView.View.OrderDate,
 			deliveryView.View.OrderStatus, deliveryView.View.OrderQuantity,
@@ -114,19 +114,19 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]**deliveries.Delivery, err
 		if err != nil {
 			return nil, fmt.Errorf("failed to create order: %v", err)
 		}
-		
+
 		driver, err := deliveries.NewDriver(deliveryView.View.DriverId, deliveryView.View.DriverName)
 		if err != nil {
 			return nil, fmt.Errorf("failed to initialize driver entity: %w", err)
 		}
-		
+
 		delivery, err := deliveries.NewDelivery(deliveryView.View.Id, *order,
 			deliveryView.View.Date, deliveryView.View.Transport,
 			deliveryView.View.Route, deliveryView.View.Status, *driver)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create delivery: %v", err)
 		}
-		
+
 		allDeliveries = append(allDeliveries, &delivery)
 	}
 	return allDeliveries, nil
@@ -141,13 +141,13 @@ func (r *PostgresRepo) Create(ctx context.Context, model *domDeliveries.Delivery
 		Status:    model.Status,
 		DriverId:  model.Driver.Id,
 	}
-	
+
 	val := reflect.ValueOf(*deliveryDB)
 	typ := reflect.TypeOf(*deliveryDB)
 	fields := make([]string, 0, typ.NumField()-1)
 	args := make([]interface{}, 0, typ.NumField()-1)
 	argsIds := make([]string, 0, typ.NumField()-1)
-	
+
 	for i := 0; i < typ.NumField(); i++ {
 		if typ.Field(i).Name == "Id" {
 			continue
@@ -159,7 +159,7 @@ func (r *PostgresRepo) Create(ctx context.Context, model *domDeliveries.Delivery
 	query := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s) RETURNING id`, deliveryDB.TableName(), strings.Join(fields,
 		", "+
 			""), strings.Join(argsIds, ", "))
-	
+
 	var id int32
 	err := r.db.QueryRowxContext(ctx, query, args...).Scan(&id)
 	if err != nil {
@@ -194,12 +194,12 @@ func (r *PostgresRepo) Update(ctx context.Context, model *domDeliveries.Delivery
 		Status:    model.Status,
 		DriverId:  model.Driver.Id,
 	}
-	
+
 	val := reflect.ValueOf(*deliveryDB)
 	typ := reflect.TypeOf(*deliveryDB)
 	fields := make([]string, 0, typ.NumField()-1)
 	args := make([]interface{}, 0, typ.NumField()-1)
-	
+
 	for i := 0; i < typ.NumField(); i++ {
 		if typ.Field(i).Name == "Id" {
 			continue
@@ -207,9 +207,9 @@ func (r *PostgresRepo) Update(ctx context.Context, model *domDeliveries.Delivery
 		fields = append(fields, fmt.Sprintf("%s = $%d", typ.Field(i).Tag.Get("db"), len(args)+1))
 		args = append(args, val.Field(i).Interface())
 	}
-	
-	query := fmt.Sprintf(`UPDATE %s SET %s WHERE id = $%d`, deliveryDB.TableName(), strings.Join(fields, ", "), deliveryDB.ID())
-	
+
+	query := fmt.Sprintf(`UPDATE %s SET %s WHERE id = %d`, deliveryDB.TableName(), strings.Join(fields, ", "), deliveryDB.ID())
+
 	_, err := r.db.ExecContext(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("failed to update %s with id = %d: %v", deliveryDB.TableName(), deliveryDB.ID(), err)

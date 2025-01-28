@@ -194,7 +194,7 @@ func (r *PostgresRepo) Update(ctx context.Context, model *domProduct.Product) er
 		args = append(args, val.Field(i).Interface())
 	}
 
-	query := fmt.Sprintf(`UPDATE %s SET %s WHERE id = $%d`, productDB.TableName(), strings.Join(fields, ", "), productDB.ID())
+	query := fmt.Sprintf(`UPDATE %s SET %s WHERE id = %d`, productDB.TableName(), strings.Join(fields, ", "), productDB.ID())
 
 	_, err := r.db.ExecContext(ctx, query, args...)
 	if err != nil {
