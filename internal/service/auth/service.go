@@ -23,6 +23,7 @@ type AuthRequest struct {
 type AuthResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
+	Role    string `json:"role,omitempty"`
 }
 
 type JwtResponse struct {
