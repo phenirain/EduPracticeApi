@@ -1,12 +1,17 @@
 package products
 
 import (
+	domOrder "api/internal/domain/orders"
 	"api/internal/domain/products"
+	domProduct "api/internal/domain/products"
 	dbPack "api/internal/infrastructure"
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/shopspring/decimal"
+	"reflect"
+	"strings"
 )
 
 type ProductDB struct {
@@ -126,4 +131,102 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*products.Product, error) 
 	}
 
 	return allProducts, nil
+}
+func (r *PostgresRepo) Create(ctx context.Context, model domProduct.Product) (domProduct.Product, error) {
+	productDB := &ProductDB{
+		Name:    model.Name,
+		Article: model.Article,
+		// TODO: не уверен что именно так это должно выглядеть, но если там требуется int32
+		Category:         model.Category.Id,
+		Quantity:         model.Quantity,
+		Price:            model.Price,
+		Location:         model.Location,
+		ReservedQuantity: model.ReservedQuantity,
+	}
+
+	val := reflect.ValueOf(productDB)
+	typ := reflect.TypeOf(productDB)
+	fields := make([]string, 0, typ.NumField()-1)
+	args := make([]interface{}, 0, typ.NumField()-1)
+	argsIds := make([]string, 0, typ.NumField()-1)
+
+	for i := 0; i < typ.NumField(); i++ {
+		if typ.Field(i).Name == "Id" {
+			continue
+		}
+		fields = append(fields, typ.Field(i).Name)
+		argsIds = append(argsIds, fmt.Sprintf("$%d", len(args)+1))
+		args = append(args, val.Field(i))
+	}
+	query := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s)`, productDB.TableName(), strings.Join(fields, ", "+
+		""), strings.Join(argsIds, ", "))
+
+	var id int32
+	err := r.db.QueryRowxContext(ctx, query, args...).Scan(&id)
+	if err != nil {
+		// must return model, because i cannot return nil due all interfaces must can operate with pointer
+		//instead copy of struct
+		return model, fmt.Errorf("failed to insert to %s: %v", productDB.TableName(), err)
+	}
+	model.SetId(id)
+	return model, nil
+}
+
+func (r *PostgresRepo) ExistsById(ctx context.Context, id int32) (bool, error) {
+	productDB := &ProductDB{}
+	query := fmt.Sprintf(`SELECT 1 FROM %s WHERE id = $1`, productDB.TableName())
+	var result int32
+	err := r.db.QueryRowxContext(ctx, query, id).Scan(&result)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to check existence: %v", err)
+	}
+	return true, nil
+}
+
+func (r *PostgresRepo) Update(ctx context.Context, model domProduct.Product) error {
+	productDB := &ProductDB{
+		Id:      model.Id,
+		Name:    model.Name,
+		Article: model.Article,
+		// TODO: не уверен что именно так это должно выглядеть, но если там требуется int32
+		Category:         model.Category.Id,
+		Quantity:         model.Quantity,
+		Price:            model.Price,
+		Location:         model.Location,
+		ReservedQuantity: model.ReservedQuantity,
+	}
+
+	val := reflect.ValueOf(productDB)
+	typ := reflect.TypeOf(productDB)
+	fields := make([]string, 0, typ.NumField()-1)
+	args := make([]interface{}, 0, typ.NumField()-1)
+
+	for i := 0; i < typ.NumField(); i++ {
+		if typ.Field(i).Name == "Id" {
+			continue
+		}
+		fields = append(fields, fmt.Sprintf("%s = $%d", typ.Field(i).Name, len(args)+1))
+		args = append(args, val.Field(i))
+	}
+
+	query := fmt.Sprintf(`UPDATE %s SET %s WHERE id = $%d`, productDB.TableName(), strings.Join(fields, ", "), productDB.ID())
+
+	_, err := r.db.ExecContext(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("failed to update %s with id = %d: %v", productDB.TableName(), productDB.ID(), err)
+	}
+	return nil
+}
+
+func (r *PostgresRepo) Delete(ctx context.Context, id int32) error {
+	productDB := &ProductDB{}
+	query := fmt.Sprintf(`DELETE FROM %s WHERE id = $1`, productDB.TableName())
+	_, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete %s with id = %d: %v", productDB.TableName(), id, err)
+	}
+	return nil
 }

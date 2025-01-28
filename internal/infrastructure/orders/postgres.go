@@ -6,9 +6,12 @@ import (
 	domProduct "api/internal/domain/products"
 	dbPack "api/internal/infrastructure"
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/shopspring/decimal"
+	"reflect"
+	"strings"
 	"time"
 )
 
@@ -98,4 +101,95 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*domOrder.Order, error) {
 	}
 
 	return allOrders, nil
+}
+
+func (r *PostgresRepo) Create(ctx context.Context, model domOrder.Order) (domOrder.Order, error) {
+	orderDB := &OrderDB{
+		Date:       model.Date,
+		Status:     model.Status,
+		Quantity:   model.Quantity,
+		TotalPrice: model.TotalPrice,
+	}
+
+	val := reflect.ValueOf(orderDB)
+	typ := reflect.TypeOf(orderDB)
+	fields := make([]string, 0, typ.NumField()-1)
+	args := make([]interface{}, 0, typ.NumField()-1)
+	argsIds := make([]string, 0, typ.NumField()-1)
+
+	for i := 0; i < typ.NumField(); i++ {
+		if typ.Field(i).Name == "Id" {
+			continue
+		}
+		fields = append(fields, typ.Field(i).Name)
+		argsIds = append(argsIds, fmt.Sprintf("$%d", len(args)+1))
+		args = append(args, val.Field(i))
+	}
+	query := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s)`, orderDB.TableName(), strings.Join(fields, ", "+
+		""), strings.Join(argsIds, ", "))
+
+	var id int32
+	err := r.db.QueryRowxContext(ctx, query, args...).Scan(&id)
+	if err != nil {
+		// must return model, because i cannot return nil due all interfaces must can operate with pointer
+		//instead copy of struct
+		return model, fmt.Errorf("failed to insert to %s: %v", orderDB.TableName(), err)
+	}
+	model.SetId(id)
+	return model, nil
+}
+
+func (r *PostgresRepo) ExistsById(ctx context.Context, id int32) (bool, error) {
+	orderDB := &OrderDB{}
+	query := fmt.Sprintf(`SELECT 1 FROM %s WHERE id = $1`, orderDB.TableName())
+	var result int32
+	err := r.db.QueryRowxContext(ctx, query, id).Scan(&result)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to check existence: %v", err)
+	}
+	return true, nil
+}
+
+func (r *PostgresRepo) Update(ctx context.Context, model domOrder.Order) error {
+	orderDB := &OrderDB{
+		Id:         model.Id,
+		Date:       model.Date,
+		Status:     model.Status,
+		Quantity:   model.Quantity,
+		TotalPrice: model.TotalPrice,
+	}
+
+	val := reflect.ValueOf(orderDB)
+	typ := reflect.TypeOf(orderDB)
+	fields := make([]string, 0, typ.NumField()-1)
+	args := make([]interface{}, 0, typ.NumField()-1)
+
+	for i := 0; i < typ.NumField(); i++ {
+		if typ.Field(i).Name == "Id" {
+			continue
+		}
+		fields = append(fields, fmt.Sprintf("%s = $%d", typ.Field(i).Name, len(args)+1))
+		args = append(args, val.Field(i))
+	}
+
+	query := fmt.Sprintf(`UPDATE %s SET %s WHERE id = $%d`, orderDB.TableName(), strings.Join(fields, ", "), orderDB.ID())
+
+	_, err := r.db.ExecContext(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("failed to update %s with id = %d: %v", orderDB.TableName(), orderDB.ID(), err)
+	}
+	return nil
+}
+
+func (r *PostgresRepo) Delete(ctx context.Context, id int32) error {
+	orderDB := &OrderDB{}
+	query := fmt.Sprintf(`DELETE FROM %s WHERE id = $1`, orderDB.TableName())
+	_, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete %s with id = %d: %v", orderDB.TableName(), id, err)
+	}
+	return nil
 }
