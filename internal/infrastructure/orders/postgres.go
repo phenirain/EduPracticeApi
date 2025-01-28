@@ -107,7 +107,7 @@ func (r *PostgresRepo) Create(ctx context.Context, model *orders.Order) (*orders
 		if typ.Field(i).Name == "Id" {
 			continue
 		}
-		fields = append(fields, typ.Field(i).Name)
+		fields = append(fields, typ.Field(i).Tag.Get("db"))
 		argsIds = append(argsIds, fmt.Sprintf("$%d", len(args)+1))
 		args = append(args, val.Field(i).Interface())
 	}
@@ -157,7 +157,7 @@ func (r *PostgresRepo) Update(ctx context.Context, model *orders.Order) error {
 		if typ.Field(i).Name == "Id" {
 			continue
 		}
-		fields = append(fields, fmt.Sprintf("%s = $%d", typ.Field(i).Name, len(args)+1))
+		fields = append(fields, fmt.Sprintf("%s = $%d", typ.Field(i).Tag.Get("db"), len(args)+1))
 		args = append(args, val.Field(i).Interface())
 	}
 	
