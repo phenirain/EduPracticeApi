@@ -15,7 +15,7 @@ type DeliveryView struct {
 func MustNewDeliveryView() *DeliveryView {
 	return &DeliveryView{
 		Query: `SELECT del.id as d_id, del.delivery_date as d_delivery_date, del.transport as d_transport,
-	del.route as d_route,
+	del.route as d_route, dr.id as driver_id, dr.full_name as driver_full_name,
 	del.status as d_status, o.id as o_id, o.order_date as o_order_date, o.status as o_status,
 	o.quantity o_quantity, o.total_price as o_total_price, p.id as p_id, p.product_name,
 	p.article as p_article, p.quantity as p_quantity, p.price as p_price, p.location as p_location,
@@ -26,7 +26,8 @@ func MustNewDeliveryView() *DeliveryView {
 	LEFT JOIN orders o ON del.order_id = o.id
     LEFT JOIN products p ON o.product_id = p.id
     LEFT JOIN clients c ON o.client_id = c.id
-    LEFT JOIN product_categories pc ON p.category_id = pc.id`,
+    LEFT JOIN product_categories pc ON p.category_id = pc.id
+    LEFT JOIN drivers dr ON del.driver_id = dr.id`,
 		View: DeliveryViewDb{},
 	}
 }
@@ -62,9 +63,10 @@ type DeliveryViewDb struct {
 	OrderQuantity   int32              `db:"o_quantity"`
 	OrderTotalPrice decimal.Decimal    `db:"o_total_price"`
 	// Delivery
-	Date      time.Time                 `db:"d_delivery_date"`
-	Transport string                    `db:"d_transport"`
-	Route     string                    `db:"d_route"`
-	Status    deliveries.DeliveryStatus `db:"d_status"`
-	Driver    Driver
+	Date       time.Time                 `db:"d_delivery_date"`
+	Transport  string                    `db:"d_transport"`
+	Route      string                    `db:"d_route"`
+	Status     deliveries.DeliveryStatus `db:"d_status"`
+	DriverId   int32                     `db:"driver_id"`
+	DriverName string                    `db:"driver_full_name"`
 }
