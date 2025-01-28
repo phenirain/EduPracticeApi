@@ -5,7 +5,6 @@ import (
 	"api/internal/application"
 	"api/internal/application/handlers"
 	"api/internal/infrastructure"
-	infraInit "api/internal/infrastructure/initialize"
 	serviceInit "api/internal/service/initialize"
 	"context"
 	"fmt"
@@ -21,7 +20,7 @@ func main() {
 		cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
 	db := infrastructure.MustInitDB(cs)
 	defer db.Close()
-	r := infraInit.NewUnitOfWork(db)
+	r := infrastructure.NewUnitOfWork(db)
 	s := serviceInit.NewServices(*r, cfg.TokenConfig)
 	handler := handlers.NewHandler(s)
 	api := handler.InitRouters()
