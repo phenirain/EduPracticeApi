@@ -66,7 +66,7 @@ func (r *PostgresRepo) GetAllCategories(ctx context.Context) ([]*products.Produc
 
 func (r *PostgresRepo) GetById(ctx context.Context, id int32) (*products.Product, error) {
 	var productView ProductView
-	err := r.db.GetContext(ctx, &productView.View, productView.Query+"WHERE p.id = $1", id)
+	err := r.db.GetContext(ctx, &productView.View, productView.Query+" WHERE p.id = $1", id)
 	if err != nil {
 		return nil, err
 	}
